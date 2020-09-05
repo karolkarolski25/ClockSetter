@@ -40,6 +40,8 @@ namespace SystemClockSetterNTP.Services
         {
             _windowService.WindowServiceStartup();
 
+            Wait().GetAwaiter().GetResult();
+
             if (_timeService.IsComputerTimeCorrect())
             {
                 _logger.LogDebug("Time is correnct, no need to set it up once again");
@@ -64,6 +66,20 @@ namespace SystemClockSetterNTP.Services
 
                     PrintErrorSettingUpSystemTimeAsync().GetAwaiter().GetResult();
                 }
+            }
+        }
+
+        private async Task Wait()
+        {
+            int startupDelay = _applicationConfiguration.StartupDelayInSeconds;
+
+            if (startupDelay > 0)
+            {
+                _logger.LogDebug($"Startup delay: {startupDelay} second(s)");
+
+                await Task.Delay(startupDelay * 1000);
+
+                _logger.LogDebug("Startup delay passed, continue work");
             }
         }
 

@@ -33,6 +33,8 @@ namespace SystemClockSetterNTP
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
+            
+            
             _logger.LogDebug("Application startup");
 
             try
@@ -64,7 +66,7 @@ namespace SystemClockSetterNTP
         {
             try
             {
-                _logger.LogDebug("User activity detected, stopping timers");
+                _logger.LogDebug("User activity detected, shutting down application");
 
                 _checkUserActivityForTimer.Stop();
 
