@@ -8,11 +8,13 @@ using SystemClockSetterNTP.Services;
 
 namespace SystemClockSetterNTP
 {
-    public class Worker : BackgroundService
+    public class Worker : IHostedService, IDisposable
     {
         private readonly ILogger<Worker> _logger;
         private readonly IApplicationService _applicationService;
         private readonly ApplicationConfiguration _applicationConfiguration;
+
+        private Timer _timer;
 
         public Worker(ILogger<Worker> logger, IApplicationService applicationService, ApplicationConfiguration applicationConfiguration)
         {
@@ -21,7 +23,7 @@ namespace SystemClockSetterNTP
             _applicationConfiguration = applicationConfiguration;
         }
 
-        public override async Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogDebug("Application startup");
 
@@ -30,7 +32,9 @@ namespace SystemClockSetterNTP
                 _applicationService.UserActivityDetected += OnUserActivityDetected;
 
                 await _applicationService.HookUserActivity();
-                //_applicationService.ApplicationStartup();
+                _applicationService.ApplicationStartup();
+
+                _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
             }
             catch (Exception e)
             {
@@ -40,10 +44,17 @@ namespace SystemClockSetterNTP
             }
         }
 
+        private void DoWork(object state)
+        {
+            throw new NotImplementedException();
+        }
+
         private void OnUserActivityDetected(object sender, EventArgs e)
         {
             try
             {
+                _timer?.Change(Timeout.Infinite, 0);
+
                 //_applicationService.ApplicationShutdown();
             }
             catch (Exception ex)
@@ -52,9 +63,18 @@ namespace SystemClockSetterNTP
             }
         }
 
-        protected override Task ExecuteAsync(CancellationToken stoppingToken)
+        public Task StopAsync(CancellationToken cancellationToken)
         {
+            _logger.LogDebug("Time exceeded");
+
+            _timer?.Change(Timeout.Infinite, 0);
+
             return Task.CompletedTask;
+        }
+
+        public void Dispose()
+        {
+            _timer?.Dispose();
         }
     }
 }
