@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using System.Windows.Forms;
 using Gma.System.MouseKeyHook;
 using System.Diagnostics;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace SystemClockSetterNTP.Services
 {
@@ -13,6 +15,8 @@ namespace SystemClockSetterNTP.Services
         private readonly ILogger<ApplicationService> _logger;
         private readonly ITimeService _timeService;
         private readonly IWindowService _windowService;
+        private readonly IHostApplicationLifetime _applicationLifetime;
+
         private readonly DateAndTimeFormat _dateAndTimeFormat;
         private readonly WindowConfiguration _windowConfiguration;
         private readonly ApplicationConfiguration _applicationConfiguration;
@@ -21,7 +25,7 @@ namespace SystemClockSetterNTP.Services
 
         public ApplicationService(ILogger<ApplicationService> logger, ITimeService timeService,
             IWindowService windowService, DateAndTimeFormat dateAndTimeFormat, WindowConfiguration windowConfiguration,
-            ApplicationConfiguration applicationConfiguration)
+            ApplicationConfiguration applicationConfiguration, IHostApplicationLifetime applicationLifetime)
         {
             _logger = logger;
             _timeService = timeService;
@@ -29,11 +33,12 @@ namespace SystemClockSetterNTP.Services
             _dateAndTimeFormat = dateAndTimeFormat;
             _windowConfiguration = windowConfiguration;
             _applicationConfiguration = applicationConfiguration;
+            _applicationLifetime = applicationLifetime;
         }
 
         public void ApplicationShutdown()
         {
-            Environment.Exit(1);
+            _applicationLifetime.StopApplication();
         }
 
         public void ApplicationStartup()
