@@ -6,5 +6,6 @@
         public int CheckUserActivityForMinuteTime { get; set; }
         public int StartupDelayInSeconds { get; set; }
         public bool UserActivityIntegration { get; set; }
+        public int MaximumSystemAndNetworkTimeSecondDifferential { get; set; }
     }
 }

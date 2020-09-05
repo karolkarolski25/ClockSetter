@@ -6,7 +6,6 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-using System.Windows.Documents;
 using SystemClockSetterNTP.Models;
 
 namespace SystemClockSetterNTP.Services
@@ -17,6 +16,7 @@ namespace SystemClockSetterNTP.Services
         private readonly NtpConfiguration _ntpConfiguration;
         private readonly WindowConfiguration _windowConfiguration;
         private readonly DateAndTimeFormat _dateAndTimeFormat;
+        private readonly ApplicationConfiguration _applicationConfiguration;
 
         [DllImport("kernel32.dll")]
         static extern bool SetSystemTime(ref SYSTEMTIME time);
@@ -46,13 +46,15 @@ namespace SystemClockSetterNTP.Services
             }
         }
 
-        public TimeService(ILogger<TimeService> logger, NtpConfiguration ntpConfiguration, 
-            WindowConfiguration windowConfiguration, DateAndTimeFormat dateAndTimeFormat)
+        public TimeService(ILogger<TimeService> logger, NtpConfiguration ntpConfiguration,
+            WindowConfiguration windowConfiguration, DateAndTimeFormat dateAndTimeFormat, 
+            ApplicationConfiguration applicationConfiguration)
         {
             _logger = logger;
             _ntpConfiguration = ntpConfiguration;
             _windowConfiguration = windowConfiguration;
             _dateAndTimeFormat = dateAndTimeFormat;
+            _applicationConfiguration = applicationConfiguration;
         }
 
         public async Task SetSystemClock()
@@ -148,7 +150,8 @@ namespace SystemClockSetterNTP.Services
 
             else
             {
-                if (CompareTimeExpectSeconds(systemTime, networkTime) && GetSecondsDifferential(systemTime, networkTime) <= 5) 
+                if (CompareTimeExpectSeconds(systemTime, networkTime) && GetSecondsDifferential(systemTime, networkTime) <= 
+                    _applicationConfiguration.MaximumSystemAndNetworkTimeSecondDifferential) 
                 {
                     _logger.LogDebug($"System time ({systemTime}) and network time ({networkTime}) are the same");
                     return true;

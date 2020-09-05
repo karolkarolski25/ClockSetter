@@ -63,6 +63,11 @@ namespace SystemClockSetterNTP.Services
                 try
                 {
                     _timeService.SetSystemClock().GetAwaiter().GetResult();
+
+                    if(!_applicationConfiguration.UserActivityIntegration)
+                    {
+                        ApplicationShutdown();
+                    }
                 }
 
                 catch (Exception ex)
