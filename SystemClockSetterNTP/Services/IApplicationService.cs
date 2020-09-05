@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 
 namespace SystemClockSetterNTP.Services
 {
@@ -7,5 +8,8 @@ namespace SystemClockSetterNTP.Services
         void ApplicationShutdown();
         void ApplicationStartup();
         Task PrintErrorSettingUpSystemTimeAsync();
+        Task HookUserActivity();
+
+        event EventHandler UserActivityDetected;
     }
 }

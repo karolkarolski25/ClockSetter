@@ -2,6 +2,6 @@
 {
     public class ApplicationConfiguration
     {
-        public int ErrorMessageTime { get; set; }
+        public int ErrorMessageSecondTime { get; set; }
     }
 }

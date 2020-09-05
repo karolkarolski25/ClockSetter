@@ -11,7 +11,7 @@ namespace SystemClockSetterNTP
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Services.GetRequiredService<IApplicationService>().ApplicationStartup();
+            CreateHostBuilder(args).Build().Run();
         }
 
         public static IHostBuilder CreateHostBuilder(string[] args) => Host.CreateDefaultBuilder(args)
@@ -22,6 +22,7 @@ namespace SystemClockSetterNTP
                 .ConfigureServices((hostContext, services) =>
                 {
                     services
+                        .AddHostedService<Worker>()
                         .AddSingleton(hostContext.Configuration.GetSection("NtpConfiguration").Get<NtpConfiguration>())
                         .AddSingleton(hostContext.Configuration.GetSection("WindowConfiguration").Get<WindowConfiguration>())
                         .AddSingleton(hostContext.Configuration.GetSection("DateAndTimeFormat").Get<DateAndTimeFormat>())

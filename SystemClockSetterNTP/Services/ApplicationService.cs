@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using SystemClockSetterNTP.Models;
 using Microsoft.Extensions.Logging;
+using System.Windows.Forms;
+using Gma.System.MouseKeyHook;
 
 namespace SystemClockSetterNTP.Services
 {
@@ -13,6 +15,8 @@ namespace SystemClockSetterNTP.Services
         private readonly DateAndTimeFormat _dateAndTimeFormat;
         private readonly WindowConfiguration _windowConfiguration;
         private readonly ApplicationConfiguration _applicationConfiguration;
+
+        public event EventHandler UserActivityDetected;
 
         public ApplicationService(ILogger<ApplicationService> logger, ITimeService timeService,
             IWindowService windowService, DateAndTimeFormat dateAndTimeFormat, WindowConfiguration windowConfiguration, 
@@ -36,8 +40,6 @@ namespace SystemClockSetterNTP.Services
 
         public void ApplicationStartup()
         {
-            _logger.LogDebug("Application startup");
-
             _windowService.WindowServiceStartup();
 
             if (_timeService.IsComputerTimeCorrect())
@@ -74,6 +76,20 @@ namespace SystemClockSetterNTP.Services
             }
         }
 
+        private void OnMouseActivityDetected(object sender, MouseEventArgs e)
+        {
+            _logger.LogDebug("Mouse activity detected");
+
+            UserActivityDetected?.Invoke(this, null);
+        }
+
+        private void OnKeyboardActivityDetected(object sender, KeyPressEventArgs e)
+        {
+            _logger.LogDebug("Keyboard activity detected");
+
+            UserActivityDetected?.Invoke(this, null);
+        }
+
         public async Task PrintErrorSettingUpSystemTimeAsync()
         {
             Console.WriteLine(new string('\n', 5));
@@ -81,7 +97,17 @@ namespace SystemClockSetterNTP.Services
             Console.WriteLine("Zegar nie został ustawiony");
             Console.WriteLine(new string('\n', 5));
 
-            await Task.Delay(_applicationConfiguration.ErrorMessageTime);
+            await Task.Delay(_applicationConfiguration.ErrorMessageSecondTime * 1000);
         }
+
+        public Task HookUserActivity() => Task.Run(() =>
+        {
+            Hook.GlobalEvents().KeyPress += OnKeyboardActivityDetected;
+            Hook.GlobalEvents().MouseWheel += OnMouseActivityDetected;
+            Hook.GlobalEvents().MouseMove += OnMouseActivityDetected;
+            Hook.GlobalEvents().MouseClick += OnMouseActivityDetected;
+
+            Application.Run();
+        });
     }
 }
