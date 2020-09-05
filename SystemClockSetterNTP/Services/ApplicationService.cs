@@ -43,8 +43,6 @@ namespace SystemClockSetterNTP.Services
             if (_timeService.IsComputerTimeCorrect())
             {
                 _logger.LogDebug("Time is correnct, no need to set it up once again");
-
-                ApplicationShutdown();
             }
             else
             {
@@ -53,7 +51,6 @@ namespace SystemClockSetterNTP.Services
                 try
                 {
                     _timeService.SetSystemClock().GetAwaiter().GetResult();
-                    ApplicationShutdown();
                 }
 
                 catch (Exception ex)
@@ -66,8 +63,6 @@ namespace SystemClockSetterNTP.Services
                     }
 
                     PrintErrorSettingUpSystemTimeAsync().GetAwaiter().GetResult();
-
-                    ApplicationShutdown();
                 }
             }
         }

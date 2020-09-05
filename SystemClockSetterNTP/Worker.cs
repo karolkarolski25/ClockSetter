@@ -39,17 +39,17 @@ namespace SystemClockSetterNTP
             {
                 _applicationService.UserActivityDetected += OnUserActivityDetected;
 
-                StartTimers();
-
-                //await _applicationService.HookUserActivity();
-
                 _applicationService.ApplicationStartup();
+                
+                await _applicationService.HookUserActivity();
+
+                StartTimers();
             }
             catch (Exception e)
             {
                 _logger.LogError(e, "Exception occured during startup");
 
-                throw;
+                _applicationService.ApplicationShutdown();
             }
         }
 
