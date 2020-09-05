@@ -5,5 +5,6 @@
         public int ErrorMessageSecondTime { get; set; }
         public int CheckUserActivityForMinuteTime { get; set; }
         public int StartupDelayInSeconds { get; set; }
+        public bool UserActivityIntegration { get; set; }
     }
 }

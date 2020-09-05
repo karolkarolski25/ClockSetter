@@ -32,20 +32,22 @@ namespace SystemClockSetterNTP
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
-        {
-            
-            
+        {      
             _logger.LogDebug("Application startup");
+            _logger.LogDebug($"Integration with user activity: {_applicationConfiguration.UserActivityIntegration}");
 
             try
             {
-                _applicationService.UserActivityDetected += OnUserActivityDetected;
-
                 _applicationService.ApplicationStartup();
-                
-                await _applicationService.HookUserActivity();
 
-                StartTimers();
+                if (_applicationConfiguration.UserActivityIntegration)
+                {
+                    _applicationService.UserActivityDetected += OnUserActivityDetected;
+
+                    await _applicationService.HookUserActivity();
+
+                    StartTimers();
+                }
             }
             catch (Exception e)
             {

@@ -45,6 +45,11 @@ namespace SystemClockSetterNTP.Services
             if (_timeService.IsComputerTimeCorrect())
             {
                 _logger.LogDebug("Time is correnct, no need to set it up once again");
+
+                if(_applicationConfiguration.UserActivityIntegration)
+                {
+                    ApplicationShutdown();
+                }
             }
             else
             {
@@ -65,6 +70,11 @@ namespace SystemClockSetterNTP.Services
                     }
 
                     PrintErrorSettingUpSystemTimeAsync().GetAwaiter().GetResult();
+
+                    if(_applicationConfiguration.UserActivityIntegration)
+                    {
+                        ApplicationShutdown();
+                    }
                 }
             }
         }
@@ -127,6 +137,8 @@ namespace SystemClockSetterNTP.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception occured during turning off computer");
+
+                ApplicationShutdown();
             }
         }
     }

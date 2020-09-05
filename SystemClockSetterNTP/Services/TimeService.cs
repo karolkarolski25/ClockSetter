@@ -63,7 +63,7 @@ namespace SystemClockSetterNTP.Services
 
                 string networkTime = await Task.Run(() => GetNetworkTime());
 
-                if(networkTime == null)
+                if (networkTime == null) 
                 {
                     throw new ArgumentException("Incorrect time");
                 }
@@ -77,6 +77,7 @@ namespace SystemClockSetterNTP.Services
                     for (int i = 0; i < _windowConfiguration.BeepCount; i++)
                     {
                         Console.Beep(_windowConfiguration.SuccessBeepFrequency, _windowConfiguration.SuccessBeepDuration);
+
                         await Task.Delay(_windowConfiguration.DelayBetweenBeep);
                     }
                 }
@@ -120,6 +121,7 @@ namespace SystemClockSetterNTP.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching network time");
+
                 return null;
             }
         }
