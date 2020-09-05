@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
@@ -14,6 +16,7 @@ namespace SystemClockSetterNTP.Services
         private readonly NtpConfiguration _ntpConfiguration;
         private readonly WindowConfiguration _windowConfiguration;
         private readonly DateAndTimeFormat _dateAndTimeFormat;
+        private readonly ApplicationConfiguration _applicationConfiguration;
 
         [DllImport("kernel32.dll")]
         static extern bool SetSystemTime(ref SYSTEMTIME time);
@@ -43,20 +46,32 @@ namespace SystemClockSetterNTP.Services
             }
         }
 
-        public TimeService(ILogger<TimeService> logger, NtpConfiguration ntpConfiguration, 
-            WindowConfiguration windowConfiguration, DateAndTimeFormat dateAndTimeFormat)
+        public TimeService(ILogger<TimeService> logger, NtpConfiguration ntpConfiguration,
+            WindowConfiguration windowConfiguration, DateAndTimeFormat dateAndTimeFormat, 
+            ApplicationConfiguration applicationConfiguration)
         {
             _logger = logger;
             _ntpConfiguration = ntpConfiguration;
             _windowConfiguration = windowConfiguration;
             _dateAndTimeFormat = dateAndTimeFormat;
+            _applicationConfiguration = applicationConfiguration;
         }
 
-        public async Task SetSystemClock(string networkTime)
+        public async Task SetSystemClock()
         {
             try
             {
+                _logger.LogDebug("Trying to set system time");
+
+                string networkTime = await Task.Run(() => GetNetworkTime());
+
+                if (networkTime == null) 
+                {
+                    throw new ArgumentException("Incorrect time");
+                }
+
                 SYSTEMTIME systime = new SYSTEMTIME(Convert.ToDateTime(networkTime).ToUniversalTime());
+
                 SetSystemTime(ref systime);
 
                 if (_windowConfiguration.Beep)
@@ -64,20 +79,17 @@ namespace SystemClockSetterNTP.Services
                     for (int i = 0; i < _windowConfiguration.BeepCount; i++)
                     {
                         Console.Beep(_windowConfiguration.SuccessBeepFrequency, _windowConfiguration.SuccessBeepDuration);
+
                         await Task.Delay(_windowConfiguration.DelayBetweenBeep);
                     }
                 }
 
                 _logger.LogDebug($"System time set to: {networkTime}");
             }
+
             catch (Exception ex)
             {
-                _logger.LogInformation($"Error while setting system time: {ex.Message}");
-
-                if (_windowConfiguration.Beep)
-                {
-                    Console.Beep(_windowConfiguration.FailureBeepFrequency, _windowConfiguration.FailureBeepDuration);
-                }
+                throw new Exception(ex.Message);
             }
         }
 
@@ -110,17 +122,20 @@ namespace SystemClockSetterNTP.Services
 
             catch (Exception ex)
             {
-                _logger.LogDebug($"Error fetching network time, error message: {ex.Message}");
+                _logger.LogError(ex, "Error fetching network time");
+
                 return null;
             }
         }
 
         public bool IsComputerTimeCorrect()
         {
-            _logger.LogDebug("Compare system time and network time");
+            _logger.LogDebug("Comparing system time and network time");
 
-            string networkTime = Task.Run(() => GetNetworkTime()).GetAwaiter().GetResult();
-            string systemTime = DateTime.Now.ToString($"{_dateAndTimeFormat.DateFormat} {_dateAndTimeFormat.TimeFormat}");
+            var times = PerformTimeTasks();
+
+            string systemTime = times[0];
+            string networkTime = times[1];
 
             if (systemTime == networkTime)
             {
@@ -130,14 +145,69 @@ namespace SystemClockSetterNTP.Services
 
             else if (networkTime == null)
             {
-                _logger.LogDebug($"Error fetching network time");
                 return false;
             }
 
             else
             {
-                _logger.LogDebug($"System time ({systemTime}) and network time ({networkTime}) are different");
+                if (CompareTimeExpectSeconds(systemTime, networkTime) && GetSecondsDifferential(systemTime, networkTime) <= 
+                    _applicationConfiguration.MaximumSystemAndNetworkTimeSecondDifferential) 
+                {
+                    _logger.LogDebug($"System time ({systemTime}) and network time ({networkTime}) are the same");
+                    return true;
+                }
+
+                else
+                {
+                    _logger.LogDebug($"System time ({systemTime}) and network time ({networkTime}) are different");
+                    return false;
+                }
+            }
+        }
+
+        private string[] PerformTimeTasks()
+        {
+            List<Task<string>> tasks = new List<Task<string>>();
+
+            tasks.Add(new Task<string>(() => { return DateTime.Now.ToString($"{_dateAndTimeFormat.DateFormat} {_dateAndTimeFormat.TimeFormat}"); }));
+            tasks.Add(new Task<string>(() => { return GetNetworkTime(); }));
+
+            Parallel.ForEach(tasks, (t) => { t.Start(); });
+
+            Task.WaitAll(tasks.ToArray());
+
+            return tasks.Select(tr => tr.Result).ToArray();
+        }
+
+        private bool CompareTimeExpectSeconds(string systemTime, string networkTime)
+        {
+            try
+            {
+                string systemDate = systemTime.Substring(0, systemTime.Length - 3);
+                string networkDate = networkTime.Substring(0, networkTime.Length - 3);
+
+                return systemDate == networkDate;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occured during compare system and network date expect seconds");
                 return false;
+            }
+        }
+
+        private int GetSecondsDifferential(string systemTime, string networkTime)
+        {
+            try
+            {
+                int systemSeconds = Convert.ToInt32(systemTime.Substring(systemTime.Length - 2));
+                int networkSeconds = Convert.ToInt32(networkTime.Substring(networkTime.Length - 2));
+
+                return Math.Abs(systemSeconds - networkSeconds);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occured during getting system and network seconds differential");
+                return -1;
             }
         }
     }

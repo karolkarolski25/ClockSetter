@@ -2,6 +2,10 @@
 {
     public class ApplicationConfiguration
     {
-        public int ErrorMessageTime { get; set; }
+        public int ErrorMessageSecondTime { get; set; }
+        public int CheckUserActivityForMinuteTime { get; set; }
+        public int StartupDelayInSeconds { get; set; }
+        public bool UserActivityIntegration { get; set; }
+        public int MaximumSystemAndNetworkTimeSecondDifferential { get; set; }
     }
 }

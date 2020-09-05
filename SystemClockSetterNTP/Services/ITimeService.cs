@@ -4,7 +4,7 @@ namespace SystemClockSetterNTP.Services
 {
     public interface ITimeService
     {
-        Task SetSystemClock(string networkTime);
+        Task SetSystemClock();
         string GetNetworkTime();
         bool IsComputerTimeCorrect();
     }
