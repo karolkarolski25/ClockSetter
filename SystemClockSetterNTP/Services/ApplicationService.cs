@@ -4,6 +4,7 @@ using SystemClockSetterNTP.Models;
 using Microsoft.Extensions.Logging;
 using System.Windows.Forms;
 using Gma.System.MouseKeyHook;
+using System.Diagnostics;
 
 namespace SystemClockSetterNTP.Services
 {
@@ -78,14 +79,14 @@ namespace SystemClockSetterNTP.Services
 
         private void OnMouseActivityDetected(object sender, MouseEventArgs e)
         {
-            _logger.LogDebug("Mouse activity detected");
+            //_logger.LogDebug("Mouse activity detected");
 
             UserActivityDetected?.Invoke(this, null);
         }
 
         private void OnKeyboardActivityDetected(object sender, KeyPressEventArgs e)
         {
-            _logger.LogDebug("Keyboard activity detected");
+            //_logger.LogDebug("Keyboard activity detected");
 
             UserActivityDetected?.Invoke(this, null);
         }
@@ -109,5 +110,22 @@ namespace SystemClockSetterNTP.Services
 
             Application.Run();
         });
+
+        public void TurnOffComputer()
+        {
+            try
+            {
+                _logger.LogDebug("Turning off computer");
+
+                ProcessStartInfo processStartInfo = new ProcessStartInfo("shutdown", "/s /t 0");
+                processStartInfo.CreateNoWindow = true;
+                processStartInfo.UseShellExecute = false;
+                Process.Start(processStartInfo);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occured during computer turn off");
+            }
+        }
     }
 }

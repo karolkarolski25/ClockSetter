@@ -1,20 +1,22 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using SystemClockSetterNTP.Models;
 using SystemClockSetterNTP.Services;
+using System.Threading.Tasks;
+using System.Threading;
+using Timer = System.Timers.Timer;
 
 namespace SystemClockSetterNTP
 {
-    public class Worker : IHostedService, IDisposable
+    public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
         private readonly IApplicationService _applicationService;
         private readonly ApplicationConfiguration _applicationConfiguration;
 
-        private Timer _timer;
+        private Timer _checkUserActivityPeriodTimer = new Timer();
+        private Timer _checkUserActivityForTimer = new Timer();
 
         public Worker(ILogger<Worker> logger, IApplicationService applicationService, ApplicationConfiguration applicationConfiguration)
         {
@@ -23,7 +25,18 @@ namespace SystemClockSetterNTP
             _applicationConfiguration = applicationConfiguration;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        private void StartTimers()
+        {
+            _checkUserActivityPeriodTimer.Interval = _applicationConfiguration.CheckUserActivityPeriodSecondTime * 1000;
+            _checkUserActivityPeriodTimer.Elapsed += CheckUserActivityPeriod_Elapsed;
+            _checkUserActivityPeriodTimer.Enabled = true;
+
+            _checkUserActivityForTimer.Interval = (_applicationConfiguration.CheckUserActivityForMinuteTime * 60) * 1000;
+            _checkUserActivityForTimer.Elapsed += CheckUserActivityForTimer_Elapsed;
+            _checkUserActivityForTimer.Enabled = true;
+        }
+
+        public override async Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogDebug("Application startup");
 
@@ -31,10 +44,11 @@ namespace SystemClockSetterNTP
             {
                 _applicationService.UserActivityDetected += OnUserActivityDetected;
 
-                await _applicationService.HookUserActivity();
-                _applicationService.ApplicationStartup();
+                StartTimers();
 
-                _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+                await _applicationService.HookUserActivity();
+
+                _applicationService.ApplicationStartup();
             }
             catch (Exception e)
             {
@@ -44,18 +58,26 @@ namespace SystemClockSetterNTP
             }
         }
 
-        private void DoWork(object state)
+        private void CheckUserActivityForTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            throw new NotImplementedException();
+            _logger.LogDebug("Time for checking user activity exceeded");
+
+            _applicationService.TurnOffComputer();
+        }
+
+        private void CheckUserActivityPeriod_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        {
+            Console.WriteLine("CHECK USER ACTIVITY");
         }
 
         private void OnUserActivityDetected(object sender, EventArgs e)
         {
             try
             {
-                _timer?.Change(Timeout.Infinite, 0);
+                _checkUserActivityForTimer.Stop();
+                _checkUserActivityPeriodTimer.Stop();
 
-                //_applicationService.ApplicationShutdown();
+                _applicationService.ApplicationShutdown();
             }
             catch (Exception ex)
             {
@@ -63,18 +85,15 @@ namespace SystemClockSetterNTP
             }
         }
 
-        public Task StopAsync(CancellationToken cancellationToken)
+        public override void Dispose()
         {
-            _logger.LogDebug("Time exceeded");
-
-            _timer?.Change(Timeout.Infinite, 0);
-
-            return Task.CompletedTask;
+            _checkUserActivityForTimer.Dispose();
+            _checkUserActivityPeriodTimer.Dispose();
         }
 
-        public void Dispose()
+        protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _timer?.Dispose();
+            return Task.CompletedTask;
         }
     }
 }

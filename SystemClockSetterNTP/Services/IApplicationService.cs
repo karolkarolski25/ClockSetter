@@ -7,6 +7,7 @@ namespace SystemClockSetterNTP.Services
     {
         void ApplicationShutdown();
         void ApplicationStartup();
+        void TurnOffComputer();
         Task PrintErrorSettingUpSystemTimeAsync();
         Task HookUserActivity();
 
