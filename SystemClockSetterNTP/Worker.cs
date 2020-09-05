@@ -15,7 +15,6 @@ namespace SystemClockSetterNTP
         private readonly IApplicationService _applicationService;
         private readonly ApplicationConfiguration _applicationConfiguration;
 
-        private Timer _checkUserActivityPeriodTimer = new Timer();
         private Timer _checkUserActivityForTimer = new Timer();
 
         public Worker(ILogger<Worker> logger, IApplicationService applicationService, ApplicationConfiguration applicationConfiguration)
@@ -27,10 +26,6 @@ namespace SystemClockSetterNTP
 
         private void StartTimers()
         {
-            _checkUserActivityPeriodTimer.Interval = _applicationConfiguration.CheckUserActivityPeriodSecondTime * 1000;
-            _checkUserActivityPeriodTimer.Elapsed += CheckUserActivityPeriod_Elapsed;
-            _checkUserActivityPeriodTimer.Enabled = true;
-
             _checkUserActivityForTimer.Interval = (_applicationConfiguration.CheckUserActivityForMinuteTime * 60) * 1000;
             _checkUserActivityForTimer.Elapsed += CheckUserActivityForTimer_Elapsed;
             _checkUserActivityForTimer.Enabled = true;
@@ -46,7 +41,7 @@ namespace SystemClockSetterNTP
 
                 StartTimers();
 
-                await _applicationService.HookUserActivity();
+                //await _applicationService.HookUserActivity();
 
                 _applicationService.ApplicationStartup();
             }
@@ -65,17 +60,15 @@ namespace SystemClockSetterNTP
             _applicationService.TurnOffComputer();
         }
 
-        private void CheckUserActivityPeriod_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
-        {
-            Console.WriteLine("CHECK USER ACTIVITY");
-        }
-
         private void OnUserActivityDetected(object sender, EventArgs e)
         {
             try
             {
+                _logger.LogDebug("User activity detected, stopping timers");
+
                 _checkUserActivityForTimer.Stop();
-                _checkUserActivityPeriodTimer.Stop();
+
+                Dispose();
 
                 _applicationService.ApplicationShutdown();
             }
@@ -88,7 +81,6 @@ namespace SystemClockSetterNTP
         public override void Dispose()
         {
             _checkUserActivityForTimer.Dispose();
-            _checkUserActivityPeriodTimer.Dispose();
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)

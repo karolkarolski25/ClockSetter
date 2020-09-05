@@ -20,7 +20,7 @@ namespace SystemClockSetterNTP.Services
         public event EventHandler UserActivityDetected;
 
         public ApplicationService(ILogger<ApplicationService> logger, ITimeService timeService,
-            IWindowService windowService, DateAndTimeFormat dateAndTimeFormat, WindowConfiguration windowConfiguration, 
+            IWindowService windowService, DateAndTimeFormat dateAndTimeFormat, WindowConfiguration windowConfiguration,
             ApplicationConfiguration applicationConfiguration)
         {
             _logger = logger;
@@ -33,9 +33,6 @@ namespace SystemClockSetterNTP.Services
 
         public void ApplicationShutdown()
         {
-            _logger.LogDebug("Application shutdown");
-            _logger.LogDebug("");
-
             Environment.Exit(1);
         }
 
@@ -53,17 +50,15 @@ namespace SystemClockSetterNTP.Services
             {
                 _logger.LogDebug($"Selected date format: {_dateAndTimeFormat.DateFormat}, time format: {_dateAndTimeFormat.TimeFormat}");
 
-                string networkTime = _timeService.GetNetworkTime();
-
-                if (networkTime != null)
+                try
                 {
-                    _timeService.SetSystemClock(networkTime).GetAwaiter().GetResult();
-
+                    _timeService.SetSystemClock().GetAwaiter().GetResult();
                     ApplicationShutdown();
                 }
-                else
+
+                catch (Exception ex)
                 {
-                    _logger.LogDebug("Error setting system time, time hasn't been set");
+                    _logger.LogError(ex, "Error setting system time, time hasn't been set");
 
                     if (_windowConfiguration.Beep)
                     {
@@ -79,15 +74,11 @@ namespace SystemClockSetterNTP.Services
 
         private void OnMouseActivityDetected(object sender, MouseEventArgs e)
         {
-            //_logger.LogDebug("Mouse activity detected");
-
             UserActivityDetected?.Invoke(this, null);
         }
 
         private void OnKeyboardActivityDetected(object sender, KeyPressEventArgs e)
         {
-            //_logger.LogDebug("Keyboard activity detected");
-
             UserActivityDetected?.Invoke(this, null);
         }
 
@@ -124,7 +115,7 @@ namespace SystemClockSetterNTP.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception occured during computer turn off");
+                _logger.LogError(ex, "Exception occured during turning off computer");
             }
         }
     }
