@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using System.Windows.Forms;
 using Gma.System.MouseKeyHook;
 using System.Diagnostics;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace SystemClockSetterNTP.Services
@@ -47,44 +46,45 @@ namespace SystemClockSetterNTP.Services
 
             Wait().GetAwaiter().GetResult();
 
-            if (_timeService.IsComputerTimeCorrect())
+            try
             {
-                _logger.LogDebug("Time is correnct, no need to set it up once again");
-
-                if(!_applicationConfiguration.UserActivityIntegration)
+                if (_timeService.IsComputerTimeCorrect())
                 {
-                    ApplicationShutdown();
+                    _logger.LogDebug("Time is correnct, no need to set it up once again");
+
+                    if (!_applicationConfiguration.UserActivityIntegration)
+                    {
+                        ApplicationShutdown();
+                    }
                 }
-            }
-            else
-            {
-                _logger.LogDebug($"Selected date format: {_dateAndTimeFormat.DateFormat}, time format: {_dateAndTimeFormat.TimeFormat}");
 
-                try
+                else
                 {
+                    _logger.LogDebug($"Selected date format: {_dateAndTimeFormat.DateFormat}, time format: {_dateAndTimeFormat.TimeFormat}");
+
                     _timeService.SetSystemClock().GetAwaiter().GetResult();
 
-                    if(!_applicationConfiguration.UserActivityIntegration)
+                    if (!_applicationConfiguration.UserActivityIntegration)
                     {
                         ApplicationShutdown();
                     }
                 }
+            }
 
-                catch (Exception ex)
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occured during time operation, time hasn't been set");
+
+                if (_windowConfiguration.Beep)
                 {
-                    _logger.LogError(ex, "Error setting system time, time hasn't been set");
+                    Console.Beep(_windowConfiguration.FailureBeepFrequency, _windowConfiguration.FailureBeepDuration);
+                }
 
-                    if (_windowConfiguration.Beep)
-                    {
-                        Console.Beep(_windowConfiguration.FailureBeepFrequency, _windowConfiguration.FailureBeepDuration);
-                    }
+                PrintErrorSettingUpSystemTimeAsync().GetAwaiter().GetResult();
 
-                    PrintErrorSettingUpSystemTimeAsync().GetAwaiter().GetResult();
-
-                    if(!_applicationConfiguration.UserActivityIntegration)
-                    {
-                        ApplicationShutdown();
-                    }
+                if (!_applicationConfiguration.UserActivityIntegration)
+                {
+                    ApplicationShutdown();
                 }
             }
         }
@@ -129,6 +129,16 @@ namespace SystemClockSetterNTP.Services
             Hook.GlobalEvents().MouseWheel += OnMouseActivityDetected;
             Hook.GlobalEvents().MouseMove += OnMouseActivityDetected;
             Hook.GlobalEvents().MouseClick += OnMouseActivityDetected;
+
+            Application.Run();
+        });
+
+        public Task UnhookUserActivity() => Task.Run(() =>
+        {
+            Hook.GlobalEvents().KeyPress -= OnKeyboardActivityDetected;
+            Hook.GlobalEvents().MouseWheel -= OnMouseActivityDetected;
+            Hook.GlobalEvents().MouseMove -= OnMouseActivityDetected;
+            Hook.GlobalEvents().MouseClick -= OnMouseActivityDetected;
 
             Application.Run();
         });

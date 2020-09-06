@@ -74,6 +74,8 @@ namespace SystemClockSetterNTP
 
                 Dispose();
 
+                _applicationService.UnhookUserActivity().GetAwaiter().GetResult();
+
                 _applicationService.ApplicationShutdown();
             }
             catch (Exception ex)

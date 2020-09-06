@@ -59,38 +59,30 @@ namespace SystemClockSetterNTP.Services
 
         public async Task SetSystemClock()
         {
-            try
+            _logger.LogDebug("Trying to set system time");
+
+            string networkTime = await Task.Run(() => GetNetworkTime());
+
+            if (networkTime == null)
             {
-                _logger.LogDebug("Trying to set system time");
-
-                string networkTime = await Task.Run(() => GetNetworkTime());
-
-                if (networkTime == null) 
-                {
-                    throw new ArgumentException("Incorrect time");
-                }
-
-                SYSTEMTIME systime = new SYSTEMTIME(Convert.ToDateTime(networkTime).ToUniversalTime());
-
-                SetSystemTime(ref systime);
-
-                if (_windowConfiguration.Beep)
-                {
-                    for (int i = 0; i < _windowConfiguration.BeepCount; i++)
-                    {
-                        Console.Beep(_windowConfiguration.SuccessBeepFrequency, _windowConfiguration.SuccessBeepDuration);
-
-                        await Task.Delay(_windowConfiguration.DelayBetweenBeep);
-                    }
-                }
-
-                _logger.LogDebug($"System time set to: {networkTime}");
+                throw new ArgumentNullException($"Incorrect time format: {networkTime}");
             }
 
-            catch (Exception ex)
+            SYSTEMTIME systime = new SYSTEMTIME(Convert.ToDateTime(networkTime).ToUniversalTime());
+
+            SetSystemTime(ref systime);
+
+            if (_windowConfiguration.Beep)
             {
-                throw new Exception(ex.Message);
+                for (int i = 0; i < _windowConfiguration.BeepCount; i++)
+                {
+                    Console.Beep(_windowConfiguration.SuccessBeepFrequency, _windowConfiguration.SuccessBeepDuration);
+
+                    await Task.Delay(_windowConfiguration.DelayBetweenBeep);
+                }
             }
+
+            _logger.LogDebug($"System time set to: {networkTime}");
         }
 
         public string GetNetworkTime()
@@ -145,7 +137,7 @@ namespace SystemClockSetterNTP.Services
 
             else if (networkTime == null)
             {
-                return false;
+                throw new ArgumentNullException($"Invalid time format: {networkTime}");
             }
 
             else
