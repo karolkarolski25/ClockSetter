@@ -60,8 +60,10 @@ namespace SystemClockSetterNTP.Services
                     {
                         ApplicationShutdown();
                     }
-
-                    _logger.LogDebug("Monitoring user activity started");
+                    else
+                    {
+                        _logger.LogDebug("Monitoring user activity started");
+                    }
                 }
 
                 else
@@ -74,8 +76,10 @@ namespace SystemClockSetterNTP.Services
                     {
                         ApplicationShutdown();
                     }
-
-                    _logger.LogDebug("Monitoring user activity started");
+                    else
+                    {
+                        _logger.LogDebug("Monitoring user activity started");
+                    }
                 }
             }
 
@@ -94,8 +98,10 @@ namespace SystemClockSetterNTP.Services
                 {
                     ApplicationShutdown();
                 }
-
-                _logger.LogDebug("Monitoring user activity started");
+                else
+                {
+                    _logger.LogDebug("Monitoring user activity started");
+                }
             }
         }
 
