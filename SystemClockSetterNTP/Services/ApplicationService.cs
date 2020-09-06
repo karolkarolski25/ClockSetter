@@ -15,6 +15,8 @@ namespace SystemClockSetterNTP.Services
         private readonly ITimeService _timeService;
         private readonly IWindowService _windowService;
         private readonly IHostApplicationLifetime _applicationLifetime;
+       
+        private  IKeyboardMouseEvents _keyboardMouseEvents;
 
         private readonly DateAndTimeFormat _dateAndTimeFormat;
         private readonly WindowConfiguration _windowConfiguration;
@@ -37,6 +39,8 @@ namespace SystemClockSetterNTP.Services
 
         public void ApplicationShutdown()
         {
+            _logger.LogDebug("Shutting down application");
+
             _applicationLifetime.StopApplication();
         }
 
@@ -56,6 +60,8 @@ namespace SystemClockSetterNTP.Services
                     {
                         ApplicationShutdown();
                     }
+
+                    _logger.LogDebug("Monitoring user activity started");
                 }
 
                 else
@@ -68,6 +74,8 @@ namespace SystemClockSetterNTP.Services
                     {
                         ApplicationShutdown();
                     }
+
+                    _logger.LogDebug("Monitoring user activity started");
                 }
             }
 
@@ -86,6 +94,8 @@ namespace SystemClockSetterNTP.Services
                 {
                     ApplicationShutdown();
                 }
+
+                _logger.LogDebug("Monitoring user activity started");
             }
         }
 
@@ -125,20 +135,24 @@ namespace SystemClockSetterNTP.Services
 
         public Task HookUserActivity() => Task.Run(() =>
         {
-            Hook.GlobalEvents().KeyPress += OnKeyboardActivityDetected;
-            Hook.GlobalEvents().MouseWheel += OnMouseActivityDetected;
-            Hook.GlobalEvents().MouseMove += OnMouseActivityDetected;
-            Hook.GlobalEvents().MouseClick += OnMouseActivityDetected;
+            _keyboardMouseEvents = Hook.GlobalEvents();
+            
+            _keyboardMouseEvents.KeyPress += OnKeyboardActivityDetected;
+            _keyboardMouseEvents.MouseWheel += OnMouseActivityDetected;
+            _keyboardMouseEvents.MouseMove += OnMouseActivityDetected;
+            _keyboardMouseEvents.MouseClick += OnMouseActivityDetected;
 
             Application.Run();
         });
 
         public Task UnhookUserActivity() => Task.Run(() =>
         {
-            Hook.GlobalEvents().KeyPress -= OnKeyboardActivityDetected;
-            Hook.GlobalEvents().MouseWheel -= OnMouseActivityDetected;
-            Hook.GlobalEvents().MouseMove -= OnMouseActivityDetected;
-            Hook.GlobalEvents().MouseClick -= OnMouseActivityDetected;
+            _keyboardMouseEvents.KeyPress -= OnKeyboardActivityDetected;
+            _keyboardMouseEvents.MouseWheel -= OnMouseActivityDetected;
+            _keyboardMouseEvents.MouseMove -= OnMouseActivityDetected;
+            _keyboardMouseEvents.MouseClick -= OnMouseActivityDetected;
+
+            _keyboardMouseEvents.Dispose();
 
             Application.Run();
         });

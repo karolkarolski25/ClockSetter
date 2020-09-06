@@ -68,13 +68,13 @@ namespace SystemClockSetterNTP
         {
             try
             {
-                _logger.LogDebug("User activity detected, shutting down application");
+                _logger.LogDebug("User activity detected, shutting down application requested");
 
                 _checkUserActivityForTimer.Stop();
 
                 Dispose();
 
-                _applicationService.UnhookUserActivity().GetAwaiter().GetResult();
+                _applicationService.UnhookUserActivity();
 
                 _applicationService.ApplicationShutdown();
             }
