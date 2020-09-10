@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SystemClockSetterNTP.Services;
 using SystemClockSetterNTP.Models;
 using Microsoft.Extensions.Configuration;
+using System;
 
 namespace SystemClockSetterNTP
 {

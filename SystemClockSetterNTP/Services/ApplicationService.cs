@@ -151,8 +151,10 @@ namespace SystemClockSetterNTP.Services
             Application.Run();
         });
 
-        public Task UnhookUserActivity() => Task.Run(() =>
+        public void UnhookUserActivity()
         {
+            if (_keyboardMouseEvents == null) return;
+
             _keyboardMouseEvents.KeyPress -= OnKeyboardActivityDetected;
             _keyboardMouseEvents.MouseWheel -= OnMouseActivityDetected;
             _keyboardMouseEvents.MouseMove -= OnMouseActivityDetected;
@@ -160,8 +162,8 @@ namespace SystemClockSetterNTP.Services
 
             _keyboardMouseEvents.Dispose();
 
-            Application.Run();
-        });
+            _keyboardMouseEvents = null;
+        }
 
         public void TurnOffComputer()
         {

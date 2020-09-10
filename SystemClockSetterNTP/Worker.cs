@@ -6,6 +6,7 @@ using SystemClockSetterNTP.Services;
 using System.Threading.Tasks;
 using System.Threading;
 using Timer = System.Timers.Timer;
+using System.Configuration;
 
 namespace SystemClockSetterNTP
 {

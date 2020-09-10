@@ -10,7 +10,7 @@ namespace SystemClockSetterNTP.Services
         void TurnOffComputer();
         Task PrintErrorSettingUpSystemTimeAsync();
         Task HookUserActivity();
-        Task UnhookUserActivity();
+        void UnhookUserActivity();
 
         event EventHandler UserActivityDetected;
     }
