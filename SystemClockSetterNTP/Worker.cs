@@ -10,51 +10,63 @@ using System.Configuration;
 
 namespace SystemClockSetterNTP
 {
-    public class Worker : BackgroundService
+    public sealed class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
         private readonly IApplicationService _applicationService;
+        private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly ApplicationConfiguration _applicationConfiguration;
 
-        private Timer _checkUserActivityForTimer = new Timer();
+        private readonly Timer _checkUserActivityForTimer = new Timer();
 
-        public Worker(ILogger<Worker> logger, IApplicationService applicationService, ApplicationConfiguration applicationConfiguration)
+        public Worker(ILogger<Worker> logger, IApplicationService applicationService, ApplicationConfiguration applicationConfiguration,
+            IHostApplicationLifetime hostApplicationLifetime)
         {
             _logger = logger;
             _applicationService = applicationService;
             _applicationConfiguration = applicationConfiguration;
+            _hostApplicationLifetime = hostApplicationLifetime;
         }
 
         private void StartTimers()
         {
+            _logger.LogDebug($"Counting started, waiting {_applicationConfiguration.CheckUserActivityForMinuteTime} minutes before turning off computer");
+
             _checkUserActivityForTimer.Interval = (_applicationConfiguration.CheckUserActivityForMinuteTime * 60) * 1000;
             _checkUserActivityForTimer.Elapsed += CheckUserActivityForTimer_Elapsed;
             _checkUserActivityForTimer.Enabled = true;
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
-        {      
-            _logger.LogDebug("Application startup");
-            _logger.LogDebug($"Integration with user activity: {_applicationConfiguration.UserActivityIntegration}");
-
+        {
             try
             {
-                _applicationService.ApplicationStartup();
+                _logger.LogDebug("Application startup");
+                _logger.LogDebug($"Integration with user activity: {_applicationConfiguration.UserActivityIntegration}");
 
-                if (_applicationConfiguration.UserActivityIntegration)
+                try
                 {
-                    _applicationService.UserActivityDetected += OnUserActivityDetected;
+                    _applicationService.ApplicationStartup();
 
-                    await _applicationService.HookUserActivity();
+                    if (_applicationConfiguration.UserActivityIntegration)
+                    {
+                        _applicationService.UserActivityDetected += OnUserActivityDetected;
 
-                    StartTimers();
+                        StartTimers();
+
+                        await _applicationService.HookUserActivity();
+                    }
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "Exception occured during startup");
+
+                    _applicationService.ApplicationShutdown();
                 }
             }
-            catch (Exception e)
+            finally
             {
-                _logger.LogError(e, "Exception occured during startup");
-
-                _applicationService.ApplicationShutdown();
+                _hostApplicationLifetime.StopApplication();
             }
         }
 
@@ -69,15 +81,13 @@ namespace SystemClockSetterNTP
         {
             try
             {
+                _applicationService.UnhookUserActivity();
+                Dispose();
+
                 _logger.LogDebug("User activity detected, shutting down application requested");
 
                 _checkUserActivityForTimer.Stop();
-
-                Dispose();
-
-                _applicationService.UnhookUserActivity();
-
-                _applicationService.ApplicationShutdown();
+                _logger.LogDebug("Counting stopped");
             }
             catch (Exception ex)
             {

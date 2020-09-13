@@ -41,7 +41,7 @@ namespace SystemClockSetterNTP.Services
         {
             _logger.LogDebug("Shutting down application");
 
-            _applicationLifetime.StopApplication();
+            //_applicationLifetime.StopApplication();
         }
 
         public void ApplicationStartup()
@@ -171,9 +171,12 @@ namespace SystemClockSetterNTP.Services
             {
                 _logger.LogDebug("Turning off computer");
 
-                ProcessStartInfo processStartInfo = new ProcessStartInfo("shutdown", "/s /t 0");
-                processStartInfo.CreateNoWindow = true;
-                processStartInfo.UseShellExecute = false;
+                ProcessStartInfo processStartInfo = new ProcessStartInfo("shutdown", "/s /t 0")
+                {
+                    CreateNoWindow = true,
+                    UseShellExecute = false
+                };
+
                 Process.Start(processStartInfo);
             }
             catch (Exception ex)
