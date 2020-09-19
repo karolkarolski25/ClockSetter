@@ -117,6 +117,10 @@ namespace SystemClockSetterNTP.Services
 
                 _logger.LogDebug("Startup delay passed, continue work");
             }
+            else
+            {
+                _logger.LogDebug("Startup delay has not been given, passing");
+            }
         }
 
         private void OnMouseActivityDetected(object sender, MouseEventArgs e)

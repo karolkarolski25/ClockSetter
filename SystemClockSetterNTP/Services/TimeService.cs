@@ -179,7 +179,7 @@ namespace SystemClockSetterNTP.Services
                         return default;
                     }
 
-                    return Convert.ToDateTime(GetNetworkTime());
+                    return Convert.ToDateTime(networkTime);
                 })
             };
 

@@ -30,7 +30,7 @@ namespace SystemClockSetterNTP
 
         private void StartTimers()
         {
-            _logger.LogDebug($"Counting started, waiting {_applicationConfiguration.CheckUserActivityForMinuteTime} minutes before turning off computer");
+            _logger.LogDebug($"Counting started, waiting {_applicationConfiguration.CheckUserActivityForMinuteTime} minute(s) before turning off computer");
 
             _checkUserActivityForTimer.Interval = (_applicationConfiguration.CheckUserActivityForMinuteTime * 60) * 1000;
             _checkUserActivityForTimer.Elapsed += CheckUserActivityForTimer_Elapsed;
@@ -70,9 +70,16 @@ namespace SystemClockSetterNTP
             }
         }
 
+        public override Task StopAsync(CancellationToken cancellationToken)
+        {
+            _hostApplicationLifetime.StopApplication();
+
+            return Task.CompletedTask;
+        }
+
         private void CheckUserActivityForTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            _logger.LogDebug("Time for checking user activity exceeded");
+            _logger.LogDebug("Time for checking user activity exceeded, no user activity detected");
 
             _applicationService.TurnOffComputer();
         }
