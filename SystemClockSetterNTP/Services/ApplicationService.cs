@@ -43,7 +43,7 @@ namespace SystemClockSetterNTP.Services
 
         public void ApplicationStartup()
         {
-            _windowService.WindowServiceStartup();
+            //_windowService.WindowServiceStartup();
 
             Wait().GetAwaiter().GetResult();
 
