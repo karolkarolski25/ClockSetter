@@ -47,7 +47,7 @@ namespace SystemClockSetterNTP.Services
         }
 
         public TimeService(ILogger<TimeService> logger, NtpConfiguration ntpConfiguration,
-            WindowConfiguration windowConfiguration, DateAndTimeFormat dateAndTimeFormat, 
+            WindowConfiguration windowConfiguration, DateAndTimeFormat dateAndTimeFormat,
             ApplicationConfiguration applicationConfiguration)
         {
             _logger = logger;

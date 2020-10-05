@@ -1,12 +1,11 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 using SystemClockSetterNTP.Models;
 using SystemClockSetterNTP.Services;
-using System.Threading.Tasks;
-using System.Threading;
 using Timer = System.Timers.Timer;
-using System.Configuration;
 
 namespace SystemClockSetterNTP
 {
@@ -70,13 +69,6 @@ namespace SystemClockSetterNTP
             }
         }
 
-        public override Task StopAsync(CancellationToken cancellationToken)
-        {
-            _hostApplicationLifetime.StopApplication();
-
-            return Task.CompletedTask;
-        }
-
         private void CheckUserActivityForTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             _logger.LogDebug("Time for checking user activity exceeded, no user activity detected");
@@ -89,12 +81,15 @@ namespace SystemClockSetterNTP
             try
             {
                 _applicationService.UnhookUserActivity();
+
                 Dispose();
 
                 _logger.LogDebug("User activity detected, shutting down application requested");
 
                 _checkUserActivityForTimer.Stop();
                 _logger.LogDebug("Counting stopped");
+
+                _applicationService.ApplicationShutdown();
             }
             catch (Exception ex)
             {

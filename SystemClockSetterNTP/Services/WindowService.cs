@@ -1,6 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Logging;
+using System;
 using SystemClockSetterNTP.Models;
-using Microsoft.Extensions.Logging;
 
 namespace SystemClockSetterNTP.Services
 {

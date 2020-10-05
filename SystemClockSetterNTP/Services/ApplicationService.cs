@@ -1,11 +1,10 @@
-﻿using System;
-using System.Threading.Tasks;
-using SystemClockSetterNTP.Models;
+﻿using Gma.System.MouseKeyHook;
 using Microsoft.Extensions.Logging;
-using System.Windows.Forms;
-using Gma.System.MouseKeyHook;
+using System;
 using System.Diagnostics;
-using Microsoft.Extensions.Hosting;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using SystemClockSetterNTP.Models;
 
 namespace SystemClockSetterNTP.Services
 {
@@ -14,9 +13,8 @@ namespace SystemClockSetterNTP.Services
         private readonly ILogger<ApplicationService> _logger;
         private readonly ITimeService _timeService;
         private readonly IWindowService _windowService;
-        private readonly IHostApplicationLifetime _applicationLifetime;
-       
-        private  IKeyboardMouseEvents _keyboardMouseEvents;
+
+        private IKeyboardMouseEvents _keyboardMouseEvents;
 
         private readonly DateAndTimeFormat _dateAndTimeFormat;
         private readonly WindowConfiguration _windowConfiguration;
@@ -26,7 +24,7 @@ namespace SystemClockSetterNTP.Services
 
         public ApplicationService(ILogger<ApplicationService> logger, ITimeService timeService,
             IWindowService windowService, DateAndTimeFormat dateAndTimeFormat, WindowConfiguration windowConfiguration,
-            ApplicationConfiguration applicationConfiguration, IHostApplicationLifetime applicationLifetime)
+            ApplicationConfiguration applicationConfiguration)
         {
             _logger = logger;
             _timeService = timeService;
@@ -34,14 +32,13 @@ namespace SystemClockSetterNTP.Services
             _dateAndTimeFormat = dateAndTimeFormat;
             _windowConfiguration = windowConfiguration;
             _applicationConfiguration = applicationConfiguration;
-            _applicationLifetime = applicationLifetime;
         }
 
         public void ApplicationShutdown()
         {
             _logger.LogDebug("Shutting down application");
 
-            //_applicationLifetime.StopApplication();
+            Application.Exit();
         }
 
         public void ApplicationStartup()
@@ -143,16 +140,18 @@ namespace SystemClockSetterNTP.Services
             await Task.Delay(_applicationConfiguration.ErrorMessageSecondTime * 1000);
         }
 
-        public Task HookUserActivity() => Task.Run(() =>
+        public Task HookUserActivity() => Task.Factory.StartNew(() =>
         {
             _keyboardMouseEvents = Hook.GlobalEvents();
-            
+
             _keyboardMouseEvents.KeyPress += OnKeyboardActivityDetected;
             _keyboardMouseEvents.MouseWheel += OnMouseActivityDetected;
             _keyboardMouseEvents.MouseMove += OnMouseActivityDetected;
             _keyboardMouseEvents.MouseClick += OnMouseActivityDetected;
 
+
             Application.Run();
+
         });
 
         public void UnhookUserActivity()

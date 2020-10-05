@@ -1,10 +1,9 @@
-﻿using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SystemClockSetterNTP.Services;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using SystemClockSetterNTP.Models;
-using Microsoft.Extensions.Configuration;
-using System;
+using SystemClockSetterNTP.Services;
 
 namespace SystemClockSetterNTP
 {

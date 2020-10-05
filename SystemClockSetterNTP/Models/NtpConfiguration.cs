@@ -2,6 +2,6 @@
 {
     public class NtpConfiguration
     {
-       public string NtpIP { get; set; }
+        public string NtpIP { get; set; }
     }
 }
