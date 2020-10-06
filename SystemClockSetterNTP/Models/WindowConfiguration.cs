@@ -12,5 +12,6 @@
         public int BeepCount { get; set; }
         public string Title { get; set; }
         public bool Beep { get; set; }
+        public bool ChangeWindowDimensions { get; set; }
     }
 }

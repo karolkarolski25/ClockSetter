@@ -43,7 +43,10 @@ namespace SystemClockSetterNTP.Services
 
         public void ApplicationStartup()
         {
-            //_windowService.WindowServiceStartup();
+            if (_windowConfiguration.ChangeWindowDimensions)
+            {
+                _windowService.WindowServiceStartup();
+            }
 
             Wait().GetAwaiter().GetResult();
 
@@ -170,23 +173,27 @@ namespace SystemClockSetterNTP.Services
 
         public void TurnOffComputer()
         {
-            try
+            if (_applicationConfiguration.TurnOffComputerAfterTimeExceeded)
             {
-                _logger.LogDebug("Turning off computer");
-
-                ProcessStartInfo processStartInfo = new ProcessStartInfo("shutdown", "/s /t 0")
+                try
                 {
-                    CreateNoWindow = true,
-                    UseShellExecute = false
-                };
+                    _logger.LogDebug("Turning off computer");
 
-                Process.Start(processStartInfo);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception occured during turning off computer");
+                    ProcessStartInfo processStartInfo = new ProcessStartInfo("shutdown", "/s /t 0")
+                    {
+                        CreateNoWindow = true,
+                        UseShellExecute = false
+                    };
 
-                ApplicationShutdown();
+                    Process.Start(processStartInfo);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Exception occured during turning off computer");
+
+                    ApplicationShutdown();
+
+                }
             }
         }
     }
