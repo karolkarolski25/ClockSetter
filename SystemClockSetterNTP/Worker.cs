@@ -38,31 +38,30 @@ namespace SystemClockSetterNTP
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
+            _logger.LogDebug("Application startup");
+            _logger.LogDebug($"Integration with user activity: {_applicationConfiguration.UserActivityIntegration}");
+
             try
             {
-                _logger.LogDebug("Application startup");
-                _logger.LogDebug($"Integration with user activity: {_applicationConfiguration.UserActivityIntegration}");
+                _applicationService.ApplicationStartup();
 
-                try
+                if (_applicationConfiguration.UserActivityIntegration)
                 {
-                    _applicationService.ApplicationStartup();
+                    _applicationService.UserActivityDetected += OnUserActivityDetected;
 
-                    if (_applicationConfiguration.UserActivityIntegration)
-                    {
-                        _applicationService.UserActivityDetected += OnUserActivityDetected;
+                    StartTimers();
 
-                        StartTimers();
-
-                        await _applicationService.HookUserActivity();
-                    }
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Exception occured during startup");
-
-                    _applicationService.ApplicationShutdown();
+                    await _applicationService.HookUserActivity();
                 }
             }
+
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Exception occured during startup");
+
+                _applicationService.ApplicationShutdown();
+            }
+
             finally
             {
                 _hostApplicationLifetime.StopApplication();
@@ -91,6 +90,7 @@ namespace SystemClockSetterNTP
 
                 _applicationService.ApplicationShutdown();
             }
+
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Exception occured during application shutdown");
