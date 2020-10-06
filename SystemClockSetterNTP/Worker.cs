@@ -40,6 +40,7 @@ namespace SystemClockSetterNTP
         {
             _logger.LogDebug("Application startup");
             _logger.LogDebug($"Integration with user activity: {_applicationConfiguration.UserActivityIntegration}");
+            _logger.LogDebug($"Shutting down application after user activity detected: {_applicationConfiguration.TurnOffApplicationAfterUserActivityDetected}");
 
             try
             {
@@ -83,12 +84,15 @@ namespace SystemClockSetterNTP
 
                 Dispose();
 
-                _logger.LogDebug("User activity detected, shutting down application requested");
+                _logger.LogDebug("User activity detected");
 
                 _checkUserActivityForTimer.Stop();
-                _logger.LogDebug("Counting stopped");
+                _logger.LogDebug("Timers stopped");
 
-                _applicationService.ApplicationShutdown();
+                if (_applicationConfiguration.TurnOffApplicationAfterUserActivityDetected)
+                {
+                    _applicationService.ApplicationShutdown();
+                }
             }
 
             catch (Exception ex)
