@@ -35,9 +35,10 @@ namespace SystemClockSetterNTP.StopwatchLibrary.Services
                 {
                     SaveTime();
 
-                    totalElapsedTime = new TimeSpan();
                     timeElapsed = new TimeSpan();
                     currentDate = DateTime.Now.Date;
+
+                    stopwatch.Reset();
                 }
 
                 totalElapsedTime = stopwatch.Elapsed + timeElapsed;
