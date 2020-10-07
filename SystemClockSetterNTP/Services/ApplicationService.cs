@@ -1,4 +1,5 @@
 ﻿using Gma.System.MouseKeyHook;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
@@ -13,6 +14,8 @@ namespace SystemClockSetterNTP.Services
         private readonly ILogger<ApplicationService> _logger;
         private readonly ITimeService _timeService;
         private readonly IWindowService _windowService;
+        private readonly IStopwatchService _stopwatchService;
+        private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
         private IKeyboardMouseEvents _keyboardMouseEvents;
 
@@ -24,7 +27,7 @@ namespace SystemClockSetterNTP.Services
 
         public ApplicationService(ILogger<ApplicationService> logger, ITimeService timeService,
             IWindowService windowService, DateAndTimeFormat dateAndTimeFormat, WindowConfiguration windowConfiguration,
-            ApplicationConfiguration applicationConfiguration)
+            ApplicationConfiguration applicationConfiguration, IStopwatchService stopwatchService, IHostApplicationLifetime hostApplicationLifetime)
         {
             _logger = logger;
             _timeService = timeService;
@@ -32,17 +35,32 @@ namespace SystemClockSetterNTP.Services
             _dateAndTimeFormat = dateAndTimeFormat;
             _windowConfiguration = windowConfiguration;
             _applicationConfiguration = applicationConfiguration;
+            _stopwatchService = stopwatchService;
+            _hostApplicationLifetime = hostApplicationLifetime;
+
+            _hostApplicationLifetime.ApplicationStopping.Register(() =>
+            {
+                _stopwatchService.StopTimer();
+                _logger.LogDebug("Shutting down application");
+            });
         }
 
         public void ApplicationShutdown()
         {
-            _logger.LogDebug("Shutting down application");
-
             Application.Exit();
         }
 
         public void ApplicationStartup()
         {
+            Task stopwatchTask = new Task(() =>
+            {
+                _stopwatchService.ReadTimeFromDataBase();
+                _stopwatchService.StartTimer();
+                _stopwatchService.RunTimer();
+            });
+
+            stopwatchTask.Start();
+
             if (_windowConfiguration.ChangeWindowDimensions)
             {
                 _windowService.WindowServiceStartup();
@@ -192,7 +210,6 @@ namespace SystemClockSetterNTP.Services
                     _logger.LogError(ex, "Exception occured during turning off computer");
 
                     ApplicationShutdown();
-
                 }
             }
         }

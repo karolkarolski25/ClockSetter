@@ -29,6 +29,7 @@ namespace SystemClockSetterNTP
                         .AddSingleton(hostContext.Configuration.GetSection("ApplicationConfiguration").Get<ApplicationConfiguration>())
                         .AddSingleton<IApplicationService, ApplicationService>()
                         .AddSingleton<ITimeService, TimeService>()
+                        .AddSingleton<IStopwatchService, StopwatchService>()
                         .AddSingleton<IWindowService, WindowService>();
                 });
     }
