@@ -4,7 +4,7 @@ namespace SystemClockSetterNTP.StopwatchLibrary.Services
 {
     public interface IStopwatchService
     {
-        void ReadTimeFromDataBase();
+        void ReadTimeAndDateFromDataBase();
         void SaveTime();
         void StartTimer();
         void StopTimer();

@@ -12,15 +12,17 @@ namespace SystemClockSetterNTP.StopwatchLibrary.Services
         private readonly Stopwatch stopwatch = new Stopwatch();
         private TimeSpan timeElapsed;
         private TimeSpan totalElapsedTime;
+        private DateTime currentDate;
 
         public StopwatchService(ILogger<StopwatchService> logger)
         {
             _logger = logger;
         }
 
-        public void ReadTimeFromDataBase()
+        public void ReadTimeAndDateFromDataBase()
         {
             timeElapsed = new TimeSpan(4, 1, 8);
+            currentDate = new DateTime(2020, 3, 20);
         }
 
         public async Task RunTimer()
@@ -28,6 +30,15 @@ namespace SystemClockSetterNTP.StopwatchLibrary.Services
             while (true)
             {
                 await Task.Delay(1000);
+
+                if (Math.Abs((DateTime.Now.Date - currentDate).TotalDays) > 0)
+                {
+                    SaveTime();
+
+                    totalElapsedTime = new TimeSpan();
+                    timeElapsed = new TimeSpan();
+                    currentDate = DateTime.Now.Date;
+                }
 
                 totalElapsedTime = stopwatch.Elapsed + timeElapsed;
             }
@@ -37,14 +48,14 @@ namespace SystemClockSetterNTP.StopwatchLibrary.Services
         {
             var time = new DateTime(totalElapsedTime.Ticks).ToString("HH:mm:ss");
 
-            _logger.LogDebug($"Elapsed time: {time}");
+            _logger.LogDebug($"{currentDate} - elapsed time: {time}");
         }
 
         public void StartTimer()
         {
             _logger.LogDebug("Starting stopwatch");
 
-            ReadTimeFromDataBase();
+            ReadTimeAndDateFromDataBase();
 
             stopwatch.Start();
         }

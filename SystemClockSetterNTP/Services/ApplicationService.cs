@@ -55,7 +55,7 @@ namespace SystemClockSetterNTP.Services
         {
             Task stopwatchTask = new Task(() =>
             {
-                _stopwatchService.ReadTimeFromDataBase();
+                _stopwatchService.ReadTimeAndDateFromDataBase();
                 _stopwatchService.StartTimer();
                 _stopwatchService.RunTimer();
             });
