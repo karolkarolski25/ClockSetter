@@ -3,7 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 
-namespace SystemClockSetterNTP.Services
+namespace SystemClockSetterNTP.StopwatchLibrary.Services
 {
     public class StopwatchService : IStopwatchService
     {

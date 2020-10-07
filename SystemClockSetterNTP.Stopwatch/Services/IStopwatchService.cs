@@ -1,7 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
-namespace SystemClockSetterNTP.Services
+namespace SystemClockSetterNTP.StopwatchLibrary.Services
 {
     public interface IStopwatchService
     {
