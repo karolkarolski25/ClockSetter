@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
 
-namespace SystemClockSetterNTP.StopwatchLibrary.Services
+namespace SystemClockSetterNTP.Services
 {
     public interface IStopwatchService
     {
         void ReadTimeAndDateFromDataBase();
-        void SaveTime();
+        void SaveOrEditTime();
         void StartTimer();
         void StopTimer();
         Task RunTimer();

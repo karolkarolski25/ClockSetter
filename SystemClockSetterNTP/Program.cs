@@ -4,7 +4,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SystemClockSetterNTP.Models;
 using SystemClockSetterNTP.Services;
-using SystemClockSetterNTP.StopwatchLibrary.Services;
 using SystemClockSetterNTP.Storage;
 
 namespace SystemClockSetterNTP

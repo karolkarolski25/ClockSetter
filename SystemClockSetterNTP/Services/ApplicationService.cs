@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using SystemClockSetterNTP.Models;
-using SystemClockSetterNTP.StopwatchLibrary.Services;
 
 namespace SystemClockSetterNTP.Services
 {
@@ -16,6 +15,7 @@ namespace SystemClockSetterNTP.Services
         private readonly ITimeService _timeService;
         private readonly IWindowService _windowService;
         private readonly IStopwatchService _stopwatchService;
+        private readonly IStorageService _storageService;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
         private IKeyboardMouseEvents _keyboardMouseEvents;
@@ -28,7 +28,8 @@ namespace SystemClockSetterNTP.Services
 
         public ApplicationService(ILogger<ApplicationService> logger, ITimeService timeService,
             IWindowService windowService, DateAndTimeFormat dateAndTimeFormat, WindowConfiguration windowConfiguration,
-            ApplicationConfiguration applicationConfiguration, IStopwatchService stopwatchService, IHostApplicationLifetime hostApplicationLifetime)
+            ApplicationConfiguration applicationConfiguration, IStopwatchService stopwatchService, IHostApplicationLifetime hostApplicationLifetime,
+            IStorageService storageService)
         {
             _logger = logger;
             _timeService = timeService;
@@ -38,6 +39,7 @@ namespace SystemClockSetterNTP.Services
             _applicationConfiguration = applicationConfiguration;
             _stopwatchService = stopwatchService;
             _hostApplicationLifetime = hostApplicationLifetime;
+            _storageService = storageService;
 
             _hostApplicationLifetime.ApplicationStopping.Register(() =>
             {
@@ -53,9 +55,10 @@ namespace SystemClockSetterNTP.Services
 
         public void ApplicationStartup()
         {
+            Task.Run(() => _storageService.MigrateAsync());
+
             Task stopwatchTask = new Task(() =>
             {
-                _stopwatchService.ReadTimeAndDateFromDataBase();
                 _stopwatchService.StartTimer();
                 _stopwatchService.RunTimer();
             });
