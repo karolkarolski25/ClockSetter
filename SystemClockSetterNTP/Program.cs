@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging;
 using SystemClockSetterNTP.Models;
 using SystemClockSetterNTP.Services;
 using SystemClockSetterNTP.StopwatchLibrary.Services;
+using SystemClockSetterNTP.Storage;
 
 namespace SystemClockSetterNTP
 {
@@ -31,7 +32,9 @@ namespace SystemClockSetterNTP
                         .AddSingleton<IApplicationService, ApplicationService>()
                         .AddSingleton<ITimeService, TimeService>()
                         .AddSingleton<IStopwatchService, StopwatchService>()
-                        .AddSingleton<IWindowService, WindowService>();
+                        .AddSingleton<IStorageService, StorageService>()
+                        .AddSingleton<IWindowService, WindowService>()
+                        .AddDbContext<ComputerDataContext>();
                 });
     }
 }

@@ -9,5 +9,6 @@
         public bool TurnOffComputerAfterTimeExceeded { get; set; }
         public bool TurnOffApplicationAfterUserActivityDetected { get; set; }
         public int MaximumSystemAndNetworkTimeSecondDifferential { get; set; }
+        public string ConnectionString { get; set; }
     }
 }

@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemClockSetterNTP", "SystemClockSetterNTP\SystemClockSetterNTP.csproj", "{B981C268-27B1-4A89-8867-B97B358F0BE2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SystemClockSetterNTP.StopwatchLibrary", "SystemClockSetterNTP.Stopwatch\SystemClockSetterNTP.StopwatchLibrary.csproj", "{13BC32F0-1F10-4D1E-B0DC-1E04751AB830}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SystemClockSetterNTP.StopwatchLibrary", "SystemClockSetterNTP.Stopwatch\SystemClockSetterNTP.StopwatchLibrary.csproj", "{13BC32F0-1F10-4D1E-B0DC-1E04751AB830}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
