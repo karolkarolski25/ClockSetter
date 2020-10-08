@@ -25,6 +25,8 @@ namespace SystemClockSetterNTP.Services
         {
             _computerDataContext.ComputerDatas.Add(computerData);
 
+            _logger.LogDebug("Added new computer data");
+
             await SaveChangesAsync();
         }
 
@@ -38,12 +40,17 @@ namespace SystemClockSetterNTP.Services
                 itemToEdit.PowerOnCount = computerData.PowerOnCount;
             }
 
+            _logger.LogDebug($"Computer data changed from {itemToEdit.Date} {itemToEdit.Time} {itemToEdit.PowerOnCount} to " +
+                $"{computerData.Date} {computerData.Time} {computerData.PowerOnCount}");
+
             await SaveChangesAsync();
         }
 
         public async void RemoveComputerData(ComputerData computerData)
         {
             _computerDataContext.ComputerDatas.Remove(computerData);
+
+            _logger.LogDebug($"Computer entry ({computerData.Date} {computerData.Time} {computerData.PowerOnCount}) removed");
 
             await SaveChangesAsync();
         }
@@ -84,6 +91,8 @@ namespace SystemClockSetterNTP.Services
 
             try
             {
+                _logger.LogDebug("Data saved");
+
                 await _computerDataContext.SaveChangesAsync();
             }
             finally
