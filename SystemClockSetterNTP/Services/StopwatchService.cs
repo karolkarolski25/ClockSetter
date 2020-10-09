@@ -30,23 +30,15 @@ namespace SystemClockSetterNTP.Services
 
             if (computerData != null)
             {
-                timeElapsed = computerData.Time;
+                timeElapsed = TimeSpan.Parse(computerData.Time);
                 currentDate = Convert.ToDateTime(computerData.Date);
                 powerOnCount = computerData.PowerOnCount;
             }
             else
             {
-                var newComputerData = new ComputerData()
-                {
-                    Date = DateTime.Now.ToString("dd.MM.yyyy"),
-                    Time = new TimeSpan(),
-                    PowerOnCount = 1
-                };
-
-                _storageService.AddComputerDataAsync(newComputerData);
-
-                timeElapsed = new TimeSpan();
-                currentDate = DateTime.Now;
+                timeElapsed = new TimeSpan(0, 0, 0);
+                currentDate = DateTime.Now.Date;
+                powerOnCount = 1;
             }
         }
 
@@ -58,11 +50,11 @@ namespace SystemClockSetterNTP.Services
 
                 if (Math.Abs((DateTime.Now.Date - currentDate).TotalDays) > 0)
                 {
-                    timeElapsed = new TimeSpan();
+                    SaveOrEditTime();
+
+                    timeElapsed = new TimeSpan(0, 0, 0);
                     currentDate = DateTime.Now.Date;
                     powerOnCount = 1;
-
-                    SaveOrEditTime();
 
                     stopwatch.Reset();
                 }
@@ -73,15 +65,13 @@ namespace SystemClockSetterNTP.Services
 
         public void SaveOrEditTime()
         {
-            var time = new DateTime(totalElapsedTime.Ticks).ToString("HH:mm:ss");
-
-            _logger.LogDebug($"{currentDate} - elapsed time: {time}");
+            _logger.LogDebug($"Elapsed time: {new DateTime(stopwatch.ElapsedTicks):HH:mm:ss}");
 
             var computerDataToEdit = new ComputerData()
             {
                 Date = currentDate.ToString("dd.MM.yyyy"),
-                Time = totalElapsedTime,
-                PowerOnCount = powerOnCount++
+                Time = totalElapsedTime.ToString(),
+                PowerOnCount = ++powerOnCount
             };
 
             var computerData = _storageService.GetComputerDatasListAsync().Result.FirstOrDefault(e => e.Date == computerDataToEdit.Date);

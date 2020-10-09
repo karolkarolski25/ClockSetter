@@ -36,14 +36,14 @@ namespace SystemClockSetterNTP.Services
 
             if (itemToEdit != null)
             {
+                _logger.LogDebug($"Computer data changed from | {itemToEdit.Date} | {itemToEdit.Time} | {itemToEdit.PowerOnCount} | to " +
+                    $"| {computerData.Date} | {computerData.Time} | {computerData.PowerOnCount} |");
+
                 itemToEdit.Time = computerData.Time;
                 itemToEdit.PowerOnCount = computerData.PowerOnCount;
+
+                await SaveChangesAsync();
             }
-
-            _logger.LogDebug($"Computer data changed from {itemToEdit.Date} {itemToEdit.Time} {itemToEdit.PowerOnCount} to " +
-                $"{computerData.Date} {computerData.Time} {computerData.PowerOnCount}");
-
-            await SaveChangesAsync();
         }
 
         public async void RemoveComputerData(ComputerData computerData)

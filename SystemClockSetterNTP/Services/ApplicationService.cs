@@ -55,15 +55,13 @@ namespace SystemClockSetterNTP.Services
 
         public void ApplicationStartup()
         {
-            Task.Run(() => _storageService.MigrateAsync());
+            Task.Run(() =>
+           {
+               _storageService.MigrateAsync();
 
-            Task stopwatchTask = new Task(() =>
-            {
-                _stopwatchService.StartTimer();
-                _stopwatchService.RunTimer();
-            });
-
-            stopwatchTask.Start();
+               _stopwatchService.StartTimer();
+               _stopwatchService.RunTimer();
+           });
 
             if (_windowConfiguration.ChangeWindowDimensions)
             {
