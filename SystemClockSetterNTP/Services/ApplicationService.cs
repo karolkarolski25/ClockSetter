@@ -43,7 +43,11 @@ namespace SystemClockSetterNTP.Services
 
             _hostApplicationLifetime.ApplicationStopping.Register(() =>
             {
-                _stopwatchService.StopTimer();
+                if (_applicationConfiguration.CountSystemRunningTime)
+                {
+                    _stopwatchService.StopTimer();
+                }
+
                 _logger.LogDebug("Shutting down application");
                 _logger.LogDebug(new string('-', 100));
             });
