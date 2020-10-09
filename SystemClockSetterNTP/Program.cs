@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
 using SystemClockSetterNTP.Models;
 using SystemClockSetterNTP.Services;
 using SystemClockSetterNTP.Storage;
@@ -29,6 +28,7 @@ namespace SystemClockSetterNTP
                         .AddSingleton(hostContext.Configuration.GetSection("WindowConfiguration").Get<WindowConfiguration>())
                         .AddSingleton(hostContext.Configuration.GetSection("DateAndTimeFormat").Get<DateAndTimeFormat>())
                         .AddSingleton(hostContext.Configuration.GetSection("ApplicationConfiguration").Get<ApplicationConfiguration>())
+                        .AddSingleton(hostContext.Configuration.GetSection("ServerConfiguration").Get<ServerConfiguration>())
                         .AddSingleton<IApplicationService, ApplicationService>()
                         .AddSingleton<ITimeService, TimeService>()
                         .AddSingleton<IStopwatchService, StopwatchService>()
