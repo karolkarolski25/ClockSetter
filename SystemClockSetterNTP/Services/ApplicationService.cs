@@ -56,13 +56,7 @@ namespace SystemClockSetterNTP.Services
 
         public void ApplicationStartup()
         {
-            Task.Run(() =>
-           {
-               _storageService.MigrateAsync();
-
-               _stopwatchService.StartTimer();
-               _stopwatchService.RunTimer();
-           });
+            Task.Run(() => _storageService.MigrateAsync());
 
             if (_windowConfiguration.ChangeWindowDimensions)
             {
@@ -76,6 +70,12 @@ namespace SystemClockSetterNTP.Services
                 if (_timeService.IsComputerTimeCorrect())
                 {
                     _logger.LogDebug("Time is correnct, no need to set it up once again");
+
+                    Task.Run(() =>
+                    {
+                        _stopwatchService.StartTimer();
+                        _stopwatchService.RunTimer();
+                    });
 
                     if (!_applicationConfiguration.UserActivityIntegration)
                     {
