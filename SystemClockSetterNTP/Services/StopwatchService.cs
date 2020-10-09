@@ -70,7 +70,7 @@ namespace SystemClockSetterNTP.Services
             var computerDataToEdit = new ComputerData()
             {
                 Date = currentDate.ToString("dd.MM.yyyy"),
-                Time = totalElapsedTime.ToString(),
+                Time = new DateTime(totalElapsedTime.Ticks).ToString("HH:mm:ss"),
                 PowerOnCount = ++powerOnCount
             };
 
