@@ -87,11 +87,14 @@ namespace SystemClockSetterNTP.Services
 
             _logger.LogDebug($"System time set to: {networkTime}");
 
-            await Task.Run(() =>
+            if (_applicationConfiguration.CountSystemRunningTime)
             {
-                _stopwatchService.StartTimer();
-                _stopwatchService.RunTimer();
-            });
+                await Task.Run(() =>
+                {
+                    _stopwatchService.StartTimer();
+                    _stopwatchService.RunTimer();
+                });
+            }
         }
 
         public string GetNetworkTime()

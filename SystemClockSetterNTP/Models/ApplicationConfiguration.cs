@@ -7,7 +7,7 @@
         public int StartupDelayInSeconds { get; set; }
         public bool UserActivityIntegration { get; set; }
         public bool TurnOffComputerAfterTimeExceeded { get; set; }
-        public bool TurnOffApplicationAfterUserActivityDetected { get; set; }
+        public bool CountSystemRunningTime { get; set; }
         public int MaximumSystemAndNetworkTimeSecondDifferential { get; set; }
         public string ConnectionString { get; set; }
     }
