@@ -18,8 +18,8 @@ namespace SystemClockSetterNTP
 
         private readonly Timer _checkUserActivityForTimer = new Timer();
 
-        public Worker(ILogger<Worker> logger, IApplicationService applicationService, ApplicationConfiguration applicationConfiguration,
-            IHostApplicationLifetime hostApplicationLifetime)
+        public Worker(ILogger<Worker> logger, IApplicationService applicationService, 
+            ApplicationConfiguration applicationConfiguration,IHostApplicationLifetime hostApplicationLifetime)
         {
             _logger = logger;
             _applicationService = applicationService;
@@ -40,7 +40,8 @@ namespace SystemClockSetterNTP
         {
             _logger.LogDebug("Application startup");
             _logger.LogDebug($"Integration with user activity: {_applicationConfiguration.UserActivityIntegration}");
-            _logger.LogDebug($"Shutting down application after user activity detected: {_applicationConfiguration.TurnOffApplicationAfterUserActivityDetected}");
+            _logger.LogDebug($"Count system time: {_applicationConfiguration.CountSystemRunningTime}");
+            _logger.LogDebug($"Shutting down computer after time exceeded: {_applicationConfiguration.TurnOffComputerAfterTimeExceeded}");
 
             try
             {
@@ -89,7 +90,7 @@ namespace SystemClockSetterNTP
                 _checkUserActivityForTimer.Stop();
                 _logger.LogDebug("Timers stopped");
 
-                if (_applicationConfiguration.TurnOffApplicationAfterUserActivityDetected)
+                if (!_applicationConfiguration.CountSystemRunningTime)
                 {
                     _applicationService.ApplicationShutdown();
                 }

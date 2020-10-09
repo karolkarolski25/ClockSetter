@@ -1,4 +1,5 @@
 ﻿using Gma.System.MouseKeyHook;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
@@ -13,6 +14,9 @@ namespace SystemClockSetterNTP.Services
         private readonly ILogger<ApplicationService> _logger;
         private readonly ITimeService _timeService;
         private readonly IWindowService _windowService;
+        private readonly IStopwatchService _stopwatchService;
+        private readonly IStorageService _storageService;
+        private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
         private IKeyboardMouseEvents _keyboardMouseEvents;
 
@@ -24,7 +28,8 @@ namespace SystemClockSetterNTP.Services
 
         public ApplicationService(ILogger<ApplicationService> logger, ITimeService timeService,
             IWindowService windowService, DateAndTimeFormat dateAndTimeFormat, WindowConfiguration windowConfiguration,
-            ApplicationConfiguration applicationConfiguration)
+            ApplicationConfiguration applicationConfiguration, IStopwatchService stopwatchService, IHostApplicationLifetime hostApplicationLifetime,
+            IStorageService storageService)
         {
             _logger = logger;
             _timeService = timeService;
@@ -32,17 +37,34 @@ namespace SystemClockSetterNTP.Services
             _dateAndTimeFormat = dateAndTimeFormat;
             _windowConfiguration = windowConfiguration;
             _applicationConfiguration = applicationConfiguration;
+            _stopwatchService = stopwatchService;
+            _hostApplicationLifetime = hostApplicationLifetime;
+            _storageService = storageService;
+
+            _hostApplicationLifetime.ApplicationStopping.Register(() =>
+            {
+                if (_applicationConfiguration.CountSystemRunningTime)
+                {
+                    _stopwatchService.StopTimer();
+                }
+
+                _logger.LogDebug("Shutting down application");
+                _logger.LogDebug(new string('-', 100));
+            });
         }
 
         public void ApplicationShutdown()
         {
-            _logger.LogDebug("Shutting down application");
-
             Application.Exit();
         }
 
         public void ApplicationStartup()
         {
+            if (_applicationConfiguration.CountSystemRunningTime)
+            {
+                Task.Run(() => _storageService.MigrateAsync());
+            }
+
             if (_windowConfiguration.ChangeWindowDimensions)
             {
                 _windowService.WindowServiceStartup();
@@ -55,6 +77,15 @@ namespace SystemClockSetterNTP.Services
                 if (_timeService.IsComputerTimeCorrect())
                 {
                     _logger.LogDebug("Time is correnct, no need to set it up once again");
+
+                    if (_applicationConfiguration.CountSystemRunningTime)
+                    {
+                        Task.Run(() =>
+                        {
+                            _stopwatchService.StartTimer();
+                            _stopwatchService.RunTimer();
+                        });
+                    }
 
                     if (!_applicationConfiguration.UserActivityIntegration)
                     {
@@ -192,7 +223,6 @@ namespace SystemClockSetterNTP.Services
                     _logger.LogError(ex, "Exception occured during turning off computer");
 
                     ApplicationShutdown();
-
                 }
             }
         }

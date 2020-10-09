@@ -18,6 +18,8 @@ namespace SystemClockSetterNTP.Services
         private readonly DateAndTimeFormat _dateAndTimeFormat;
         private readonly ApplicationConfiguration _applicationConfiguration;
 
+        private readonly IStopwatchService _stopwatchService;
+
         [DllImport("kernel32.dll")]
         static extern bool SetSystemTime(ref SYSTEMTIME time);
 
@@ -48,13 +50,14 @@ namespace SystemClockSetterNTP.Services
 
         public TimeService(ILogger<TimeService> logger, NtpConfiguration ntpConfiguration,
             WindowConfiguration windowConfiguration, DateAndTimeFormat dateAndTimeFormat,
-            ApplicationConfiguration applicationConfiguration)
+            ApplicationConfiguration applicationConfiguration, IStopwatchService stopwatchService)
         {
             _logger = logger;
             _ntpConfiguration = ntpConfiguration;
             _windowConfiguration = windowConfiguration;
             _dateAndTimeFormat = dateAndTimeFormat;
             _applicationConfiguration = applicationConfiguration;
+            _stopwatchService = stopwatchService;
         }
 
         public async Task SetSystemClock()
@@ -83,6 +86,15 @@ namespace SystemClockSetterNTP.Services
             }
 
             _logger.LogDebug($"System time set to: {networkTime}");
+
+            if (_applicationConfiguration.CountSystemRunningTime)
+            {
+                await Task.Run(() =>
+                {
+                    _stopwatchService.StartTimer();
+                    _stopwatchService.RunTimer();
+                });
+            }
         }
 
         public string GetNetworkTime()
