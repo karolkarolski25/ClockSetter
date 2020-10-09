@@ -38,7 +38,7 @@ namespace SystemClockSetterNTP.Services
             {
                 timeElapsed = new TimeSpan(0, 0, 0);
                 currentDate = DateTime.Now.Date;
-                powerOnCount = 1;
+                powerOnCount = 0;
             }
         }
 
@@ -54,7 +54,7 @@ namespace SystemClockSetterNTP.Services
 
                     timeElapsed = new TimeSpan(0, 0, 0);
                     currentDate = DateTime.Now.Date;
-                    powerOnCount = 1;
+                    powerOnCount = 0;
 
                     stopwatch.Reset();
                 }

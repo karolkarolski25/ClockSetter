@@ -45,6 +45,7 @@ namespace SystemClockSetterNTP.Services
             {
                 _stopwatchService.StopTimer();
                 _logger.LogDebug("Shutting down application");
+                _logger.LogDebug(new string('-', 100));
             });
         }
 

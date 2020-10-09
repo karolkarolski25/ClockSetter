@@ -25,7 +25,7 @@ namespace SystemClockSetterNTP.Services
         {
             _computerDataContext.ComputerDatas.Add(computerData);
 
-            _logger.LogDebug("Added new computer data");
+            _logger.LogDebug($"Added new computer data ({computerData.Id} | {computerData.Date} | {computerData.Time} | {computerData.PowerOnCount})");
 
             await SaveChangesAsync();
         }
