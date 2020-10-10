@@ -15,8 +15,6 @@ namespace SystemClockSetterNTP.SystemStopwatch.Services
     {
         private readonly ILogger<StopwatchService> _logger;
         private readonly IStorageService _storageService;
-        private readonly INicService _nicService;
-        private readonly ApplicationConfiguration _applicationConfiguration;
 
         private readonly Stopwatch stopwatch = new Stopwatch();
         private TimeSpan timeElapsed;
@@ -25,13 +23,10 @@ namespace SystemClockSetterNTP.SystemStopwatch.Services
         private int? powerOnCount;
         private ComputerData stopwatchData;
 
-        public StopwatchService(ILogger<StopwatchService> logger, IStorageService storageService,
-            INicService nicService, ApplicationConfiguration applicationConfiguration)
+        public StopwatchService(ILogger<StopwatchService> logger, IStorageService storageService)
         {
             _logger = logger;
             _storageService = storageService;
-            _nicService = nicService;
-            _applicationConfiguration = applicationConfiguration;
         }
 
         public void ReadStopwatchDataFromDatabase()
@@ -63,8 +58,6 @@ namespace SystemClockSetterNTP.SystemStopwatch.Services
                     timeElapsed = new TimeSpan(0, 0, 0);
                     currentDate = DateTime.Now.Date;
                     powerOnCount = 0;
-                    _nicService.GigabytesSent = 0;
-                    _nicService.GigabytesReceived = 0;
 
                     stopwatch.Reset();
                 }

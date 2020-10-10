@@ -19,6 +19,7 @@ namespace SystemClockSetterNTP.NetworkActivity.Services
         private readonly List<PerformanceCounter> sentPerformanceCounters = new List<PerformanceCounter>();
 
         private ComputerData nicData;
+        private DateTime currentDate;
         private bool monitorNetworkActivity = false;
 
         private readonly ILogger<NicService> _logger;
@@ -36,12 +37,14 @@ namespace SystemClockSetterNTP.NetworkActivity.Services
 
             if (nicData != null)
             {
+                currentDate = Convert.ToDateTime(nicData.Date);
                 GigabytesReceived = nicData.GigabytesReceived;
                 GigabytesSent = nicData.GigabytesSent;
             }
             else
             {
-                GigabytesSent = 0;
+                currentDate = DateTime.Now.Date;
+                GigabytesSent = 0;  
                 GigabytesReceived = 0;
             }
         }
@@ -54,16 +57,17 @@ namespace SystemClockSetterNTP.NetworkActivity.Services
 
             if (nicData != null)
             {
-                nicDataToUpdate.GigabytesSent = GigabytesSent;
-                nicDataToUpdate.GigabytesReceived = GigabytesReceived;
+                nicDataToUpdate.Date = currentDate.ToString("dd.MM.yyyy");
+                nicDataToUpdate.GigabytesSent = (double?)Math.Round((decimal)GigabytesSent, 4);
+                nicDataToUpdate.GigabytesReceived = (double?)Math.Round((decimal)GigabytesReceived, 4);
             }
             else
             {
                 nicDataToUpdate.Date = DateTime.Now.Date.ToString("dd.MM.yyyy");
                 nicDataToUpdate.Time = "00:00:00";
                 nicDataToUpdate.PowerOnCount = 1;
-                nicDataToUpdate.GigabytesSent = GigabytesSent;
-                nicDataToUpdate.GigabytesReceived = GigabytesReceived;
+                nicDataToUpdate.GigabytesSent = (double?)Math.Round((decimal)GigabytesSent, 4);
+                nicDataToUpdate.GigabytesReceived = (double?)Math.Round((decimal)GigabytesReceived, 4);
             }
 
             _storageService.UpdateData(nicDataToUpdate);
@@ -91,10 +95,22 @@ namespace SystemClockSetterNTP.NetworkActivity.Services
 
         public async void StartNicsMonitoring()
         {
+            _logger.LogDebug("Starting monitoring network activity");
+            
             monitorNetworkActivity = true;
 
             do
             {
+                if (Math.Abs((currentDate - DateTime.Now.Date).TotalDays) > 0)
+                {
+                    UpdateNicData();
+
+                    GigabytesSent = 0;
+                    GigabytesReceived = 0;
+
+                    currentDate = DateTime.Now.Date;
+                }
+
                 foreach (var nic in sentPerformanceCounters)
                 {
                     GigabytesSent += ConvertToGigabyte(nic.NextValue());
@@ -113,6 +129,8 @@ namespace SystemClockSetterNTP.NetworkActivity.Services
         public void StopNicsMonitoring()
         {
             monitorNetworkActivity = false;
+
+            _logger.LogDebug("Stopping monitoring network activity");
 
             UpdateNicData();
         }
