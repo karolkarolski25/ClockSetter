@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using SystemClockSetterNTP.Models;
 using SystemClockSetterNTP.Storage;
 using SystemClockSetterNTP.Storage.Services;
 
@@ -13,6 +14,7 @@ namespace SystemClockSetterNTP.Services
         private readonly ILogger<StopwatchService> _logger;
         private readonly IStorageService _storageService;
         private readonly INicService _nicService;
+        private readonly ApplicationConfiguration _applicationConfiguration;
 
         private readonly Stopwatch stopwatch = new Stopwatch();
         private TimeSpan timeElapsed;
@@ -20,11 +22,13 @@ namespace SystemClockSetterNTP.Services
         private DateTime currentDate;
         private int powerOnCount;
 
-        public StopwatchService(ILogger<StopwatchService> logger, IStorageService storageService, INicService nicService)
+        public StopwatchService(ILogger<StopwatchService> logger, IStorageService storageService, 
+            INicService nicService, ApplicationConfiguration applicationConfiguration)
         {
             _logger = logger;
             _storageService = storageService;
             _nicService = nicService;
+            _applicationConfiguration = applicationConfiguration;
         }
 
         public void ReadTimeAndDateFromDataBase()
@@ -81,8 +85,8 @@ namespace SystemClockSetterNTP.Services
                 Date = currentDate.ToString("dd.MM.yyyy"),
                 Time = new DateTime(totalElapsedTime.Ticks).ToString("HH:mm:ss"),
                 PowerOnCount = ++powerOnCount,
-                GigabytesReceived = _nicService.GigabytesReceived,
-                GigabytesSent = _nicService.GigabytesSent
+                GigabytesReceived = Math.Round(_nicService.GigabytesReceived, 4),
+                GigabytesSent = Math.Round(_nicService.GigabytesSent, 4)
             };
 
             var computerData = _storageService.GetComputerDatasListAsync().Result.FirstOrDefault(e => e.Date == computerDataToEdit.Date);
@@ -103,11 +107,14 @@ namespace SystemClockSetterNTP.Services
 
             ReadTimeAndDateFromDataBase();
 
-            Task.Run(() =>
+            if (_applicationConfiguration.CountNetworkActivity)
             {
-                _nicService.InitializeNICs();
-                _nicService.RunMonitoringNics();
-            });
+                Task.Run(() =>
+                {
+                    _nicService.InitializeNICs();
+                    _nicService.RunMonitoringNics();
+                });
+            }
 
             stopwatch.Start();
         }
