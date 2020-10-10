@@ -58,6 +58,8 @@ namespace SystemClockSetterNTP.Services
                     _nicService.StopNicsMonitoring();
                 }
 
+                _storageService.EditData();
+
                 _logger.LogDebug("Shutting down application");
                 _logger.LogDebug(new string('-', 100));
             });
