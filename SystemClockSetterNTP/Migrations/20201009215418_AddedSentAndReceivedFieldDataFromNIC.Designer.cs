@@ -2,15 +2,17 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemClockSetterNTP.Storage;
 
 namespace SystemClockSetterNTP.Migrations
 {
     [DbContext(typeof(ComputerDataContext))]
-    partial class ComputerDataContextModelSnapshot : ModelSnapshot
+    [Migration("20201009215418_AddedSentAndReceivedFieldDataFromNIC")]
+    partial class AddedSentAndReceivedFieldDataFromNIC
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -25,15 +27,15 @@ namespace SystemClockSetterNTP.Migrations
                         .HasColumnType("bigint")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<double>("DataReceived")
+                        .HasColumnType("float");
+
+                    b.Property<double>("DataSent")
+                        .HasColumnType("float");
+
                     b.Property<string>("Date")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<double>("GigabytesReceived")
-                        .HasColumnType("float");
-
-                    b.Property<double>("GigabytesSent")
-                        .HasColumnType("float");
 
                     b.Property<int>("PowerOnCount")
                         .HasColumnType("int");

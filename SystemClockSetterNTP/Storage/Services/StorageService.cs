@@ -4,9 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using SystemClockSetterNTP.Storage;
 
-namespace SystemClockSetterNTP.Services
+namespace SystemClockSetterNTP.Storage.Services
 {
     public class StorageService : IStorageService
     {
@@ -25,7 +24,8 @@ namespace SystemClockSetterNTP.Services
         {
             _computerDataContext.ComputerDatas.Add(computerData);
 
-            _logger.LogDebug($"Added new computer data ({computerData.Id} | {computerData.Date} | {computerData.Time} | {computerData.PowerOnCount})");
+            _logger.LogDebug($"Added new computer data | {computerData.Id} | {computerData.Date} | {computerData.Time} | {computerData.PowerOnCount} |" +
+                $" {computerData.GigabytesReceived} | {computerData.GigabytesSent} |");
 
             await SaveChangesAsync();
         }
@@ -36,8 +36,9 @@ namespace SystemClockSetterNTP.Services
 
             if (itemToEdit != null)
             {
-                _logger.LogDebug($"Computer data changed from | {itemToEdit.Date} | {itemToEdit.Time} | {itemToEdit.PowerOnCount} | to " +
-                    $"| {computerData.Date} | {computerData.Time} | {computerData.PowerOnCount} |");
+                _logger.LogDebug($"Computer data changed from | {itemToEdit.Date} | {itemToEdit.Time} | {itemToEdit.PowerOnCount} | {itemToEdit.GigabytesReceived} " +
+                    $"| {itemToEdit.GigabytesSent} | to | {computerData.Date} | {computerData.Time} | {computerData.PowerOnCount} | {computerData.GigabytesReceived} " +
+                    $"| {computerData.GigabytesSent} |");
 
                 itemToEdit.Time = computerData.Time;
                 itemToEdit.PowerOnCount = computerData.PowerOnCount;
@@ -50,7 +51,7 @@ namespace SystemClockSetterNTP.Services
         {
             _computerDataContext.ComputerDatas.Remove(computerData);
 
-            _logger.LogDebug($"Computer entry ({computerData.Date} {computerData.Time} {computerData.PowerOnCount}) removed");
+            _logger.LogDebug($"Computer entry | {computerData.Date} | {computerData.Time} | {computerData.PowerOnCount} | {computerData.GigabytesReceived} | {computerData.GigabytesSent} | removed");
 
             await SaveChangesAsync();
         }

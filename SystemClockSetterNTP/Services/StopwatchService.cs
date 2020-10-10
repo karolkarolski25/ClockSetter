@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using SystemClockSetterNTP.Storage;
+using SystemClockSetterNTP.Storage.Services;
 
 namespace SystemClockSetterNTP.Services
 {
@@ -11,6 +12,7 @@ namespace SystemClockSetterNTP.Services
     {
         private readonly ILogger<StopwatchService> _logger;
         private readonly IStorageService _storageService;
+        private readonly INicService _nicService;
 
         private readonly Stopwatch stopwatch = new Stopwatch();
         private TimeSpan timeElapsed;
@@ -18,10 +20,11 @@ namespace SystemClockSetterNTP.Services
         private DateTime currentDate;
         private int powerOnCount;
 
-        public StopwatchService(ILogger<StopwatchService> logger, IStorageService storageService)
+        public StopwatchService(ILogger<StopwatchService> logger, IStorageService storageService, INicService nicService)
         {
             _logger = logger;
             _storageService = storageService;
+            _nicService = nicService;
         }
 
         public void ReadTimeAndDateFromDataBase()
@@ -33,12 +36,16 @@ namespace SystemClockSetterNTP.Services
                 timeElapsed = TimeSpan.Parse(computerData.Time);
                 currentDate = Convert.ToDateTime(computerData.Date);
                 powerOnCount = computerData.PowerOnCount;
+                _nicService.GigabytesReceived = computerData.GigabytesReceived;
+                _nicService.GigabytesSent = computerData.GigabytesSent;
             }
             else
             {
                 timeElapsed = new TimeSpan(0, 0, 0);
                 currentDate = DateTime.Now.Date;
                 powerOnCount = 0;
+                _nicService.GigabytesSent = 0;
+                _nicService.GigabytesReceived = 0;
             }
         }
 
@@ -55,6 +62,8 @@ namespace SystemClockSetterNTP.Services
                     timeElapsed = new TimeSpan(0, 0, 0);
                     currentDate = DateTime.Now.Date;
                     powerOnCount = 0;
+                    _nicService.GigabytesSent = 0;
+                    _nicService.GigabytesReceived = 0;
 
                     stopwatch.Reset();
                 }
@@ -71,7 +80,9 @@ namespace SystemClockSetterNTP.Services
             {
                 Date = currentDate.ToString("dd.MM.yyyy"),
                 Time = new DateTime(totalElapsedTime.Ticks).ToString("HH:mm:ss"),
-                PowerOnCount = ++powerOnCount
+                PowerOnCount = ++powerOnCount,
+                GigabytesReceived = _nicService.GigabytesReceived,
+                GigabytesSent = _nicService.GigabytesSent
             };
 
             var computerData = _storageService.GetComputerDatasListAsync().Result.FirstOrDefault(e => e.Date == computerDataToEdit.Date);
@@ -91,6 +102,12 @@ namespace SystemClockSetterNTP.Services
             _logger.LogDebug("Starting stopwatch");
 
             ReadTimeAndDateFromDataBase();
+
+            Task.Run(() =>
+            {
+                _nicService.InitializeNICs();
+                _nicService.RunMonitoringNics();
+            });
 
             stopwatch.Start();
         }

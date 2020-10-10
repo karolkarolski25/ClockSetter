@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using SystemClockSetterNTP.Models;
+using SystemClockSetterNTP.Storage.Services;
 
 namespace SystemClockSetterNTP.Services
 {

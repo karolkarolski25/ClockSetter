@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using SystemClockSetterNTP.Storage;
 
-namespace SystemClockSetterNTP.Services
+namespace SystemClockSetterNTP.Storage.Services
 {
     public interface IStorageService
     {
