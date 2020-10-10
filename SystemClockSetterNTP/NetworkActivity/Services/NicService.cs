@@ -46,6 +46,13 @@ namespace SystemClockSetterNTP.NetworkActivity.Services
                 currentDate = DateTime.Now.Date;
                 GigabytesSent = 0;  
                 GigabytesReceived = 0;
+
+                nicData = new ComputerData()
+                {
+                    Date = currentDate.ToString("dd.MM.yyyy"),
+                    GigabytesReceived = GigabytesReceived,
+                    GigabytesSent = GigabytesSent
+                };
             }
         }
 

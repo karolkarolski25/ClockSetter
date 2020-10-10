@@ -3,9 +3,6 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Forms;
-using SystemClockSetterNTP.Models;
-using SystemClockSetterNTP.NetworkActivity.Services;
 using SystemClockSetterNTP.Storage.Models;
 using SystemClockSetterNTP.Storage.Services;
 
@@ -44,6 +41,13 @@ namespace SystemClockSetterNTP.SystemStopwatch.Services
                 timeElapsed = new TimeSpan(0, 0, 0);
                 currentDate = DateTime.Now.Date;
                 powerOnCount = 0;
+
+                stopwatchData = new ComputerData()
+                {
+                    Time = timeElapsed.ToString(),
+                    Date = currentDate.ToString("dd.MM.yyyy"),
+                    PowerOnCount = powerOnCount
+                };
             }
         }
 
