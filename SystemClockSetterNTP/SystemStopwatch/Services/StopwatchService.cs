@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using SystemClockSetterNTP.Models;
 using SystemClockSetterNTP.NetworkActivity.Services;
 using SystemClockSetterNTP.Storage.Models;
@@ -22,6 +23,7 @@ namespace SystemClockSetterNTP.SystemStopwatch.Services
         private TimeSpan totalElapsedTime;
         private DateTime currentDate;
         private int? powerOnCount;
+        private ComputerData stopwatchData;
 
         public StopwatchService(ILogger<StopwatchService> logger, IStorageService storageService,
             INicService nicService, ApplicationConfiguration applicationConfiguration)
@@ -34,13 +36,13 @@ namespace SystemClockSetterNTP.SystemStopwatch.Services
 
         public void ReadStopwatchDataFromDatabase()
         {
-            var computerData = _storageService.GetComputerDatasListAsync().Result.FirstOrDefault(e => e.Date == DateTime.Now.ToString("dd.MM.yyyy"));
+            stopwatchData = _storageService.GetComputerDatasListAsync().Result.FirstOrDefault(e => e.Date == DateTime.Now.ToString("dd.MM.yyyy"));
 
-            if (computerData != null)
+            if (stopwatchData != null)
             {
-                timeElapsed = TimeSpan.Parse(computerData.Time);
-                currentDate = Convert.ToDateTime(computerData.Date);
-                powerOnCount = computerData.PowerOnCount;
+                timeElapsed = TimeSpan.Parse(stopwatchData.Time);
+                currentDate = Convert.ToDateTime(stopwatchData.Date);
+                powerOnCount = stopwatchData.PowerOnCount;
             }
             else
             {
@@ -67,8 +69,6 @@ namespace SystemClockSetterNTP.SystemStopwatch.Services
                     stopwatch.Reset();
                 }
 
-                _nicService.StartNicsMonitoring();
-
                 totalElapsedTime = stopwatch.Elapsed + timeElapsed;
 
                 await Task.Delay(1000);
@@ -79,14 +79,24 @@ namespace SystemClockSetterNTP.SystemStopwatch.Services
         {
             _logger.LogDebug($"Elapsed time: {new DateTime(stopwatch.ElapsedTicks):HH:mm:ss}");
 
-            var computerData = new ComputerData()
-            {
-                Date = currentDate.ToString("dd.MM.yyyy"),
-                Time = new DateTime(totalElapsedTime.Ticks).ToString("HH:mm:ss"),
-                PowerOnCount = ++powerOnCount,
-            };
+            var stopwatchDataToUpdate = new ComputerData();
 
-            _storageService.UpdateData(computerData);
+            if (stopwatchData != null)
+            {
+                stopwatchDataToUpdate.Date = currentDate.ToString("dd.MM.yyyy");
+                stopwatchDataToUpdate.Time = new DateTime(totalElapsedTime.Ticks).ToString("HH:mm:ss");
+                stopwatchDataToUpdate.PowerOnCount = ++powerOnCount;
+            }
+            else
+            {
+                stopwatchDataToUpdate.Date = DateTime.Now.Date.ToString("dd.MM.yyyy");
+                stopwatchDataToUpdate.Time = "00:00:00";
+                stopwatchDataToUpdate.PowerOnCount = 1;
+                stopwatchDataToUpdate.GigabytesReceived = 0;
+                stopwatchDataToUpdate.GigabytesSent = 0;
+            }
+
+            _storageService.UpdateData(stopwatchDataToUpdate);
         }
 
         public void StartTimer()

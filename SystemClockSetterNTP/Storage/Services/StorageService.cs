@@ -15,21 +15,23 @@ namespace SystemClockSetterNTP.Storage.Services
         private readonly IComputerDataContext _computerDataContext;
         private readonly ILogger<StorageService> _logger;
 
-        public ComputerData ComputerData { get; set; } = new ComputerData();
+        public ComputerData ComputerData { get; set; }
 
         public StorageService(IComputerDataContext computerDataContext, ILogger<StorageService> logger)
         {
             _computerDataContext = computerDataContext;
             _logger = logger;
+
+            ComputerData = new ComputerData();
         }
 
         public void UpdateData(ComputerData computerData)
         {
-            ComputerData.Date = computerData?.Date;
-            ComputerData.Time = computerData?.Time;
-            ComputerData.PowerOnCount = computerData?.PowerOnCount;
-            ComputerData.GigabytesReceived = computerData.GigabytesReceived;
-            ComputerData.GigabytesSent = computerData.GigabytesSent;
+            ComputerData.Date ??= computerData.Date;
+            ComputerData.Time ??= computerData.Time;
+            ComputerData.PowerOnCount ??= computerData.PowerOnCount;
+            ComputerData.GigabytesReceived ??= computerData.GigabytesReceived;
+            ComputerData.GigabytesSent ??= computerData.GigabytesSent;
         }
 
         public async void EditData()

@@ -60,6 +60,8 @@ namespace SystemClockSetterNTP.NetworkActivity.Services
             else
             {
                 nicDataToUpdate.Date = DateTime.Now.Date.ToString("dd.MM.yyyy");
+                nicDataToUpdate.Time = "00:00:00";
+                nicDataToUpdate.PowerOnCount = 1;
                 nicDataToUpdate.GigabytesSent = GigabytesSent;
                 nicDataToUpdate.GigabytesReceived = GigabytesReceived;
             }
@@ -89,7 +91,9 @@ namespace SystemClockSetterNTP.NetworkActivity.Services
 
         public async void StartNicsMonitoring()
         {
-            while (monitorNetworkActivity)
+            monitorNetworkActivity = true;
+
+            do
             {
                 foreach (var nic in sentPerformanceCounters)
                 {
@@ -102,7 +106,8 @@ namespace SystemClockSetterNTP.NetworkActivity.Services
                 }
 
                 await Task.Delay(1000);
-            }
+
+            } while (monitorNetworkActivity);
         }
 
         public void StopNicsMonitoring()
