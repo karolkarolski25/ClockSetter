@@ -1,7 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using SystemClockSetterNTP.Storage.Models;
 
-namespace SystemClockSetterNTP.Storage
+namespace SystemClockSetterNTP.Storage.Mappers
 {
     public class ComputerDataMapper : IEntityTypeConfiguration<ComputerData>
     {

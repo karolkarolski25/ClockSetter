@@ -1,5 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SystemClockSetterNTP.Models;
+using SystemClockSetterNTP.Storage.Mappers;
+using SystemClockSetterNTP.Storage.Models;
 
 namespace SystemClockSetterNTP.Storage
 {

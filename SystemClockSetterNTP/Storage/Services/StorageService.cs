@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SystemClockSetterNTP.Storage.Models;
 
 namespace SystemClockSetterNTP.Storage.Services
 {
@@ -14,10 +15,44 @@ namespace SystemClockSetterNTP.Storage.Services
         private readonly IComputerDataContext _computerDataContext;
         private readonly ILogger<StorageService> _logger;
 
+        public ComputerData ComputerData { get; set; } = new ComputerData();
+
         public StorageService(IComputerDataContext computerDataContext, ILogger<StorageService> logger)
         {
             _computerDataContext = computerDataContext;
             _logger = logger;
+        }
+
+        public void UpdateData(ComputerData computerData)
+        {
+            ComputerData.Date = computerData?.Date;
+            ComputerData.Time = computerData?.Time;
+            ComputerData.PowerOnCount = computerData?.PowerOnCount;
+            ComputerData.GigabytesReceived = computerData.GigabytesReceived;
+            ComputerData.GigabytesSent = computerData.GigabytesSent;
+        }
+
+        public async void EditData()
+        {
+            var itemToEdit = _computerDataContext.ComputerDatas.FirstOrDefault(d => d.Date == ComputerData.Date);
+
+            if (itemToEdit != null)
+            {
+                _logger.LogDebug($"Computer data changed from | {itemToEdit.Date} | {itemToEdit.Time} | {itemToEdit.PowerOnCount} | {itemToEdit.GigabytesReceived} " +
+                    $"| {itemToEdit.GigabytesSent} | to | {ComputerData.Date} | {ComputerData.Time} | {ComputerData.PowerOnCount} | {ComputerData.GigabytesReceived} " +
+                    $"| {ComputerData.GigabytesSent} |");
+
+                itemToEdit.Time = ComputerData.Time;
+                itemToEdit.PowerOnCount = ComputerData.PowerOnCount;
+                itemToEdit.GigabytesReceived = ComputerData.GigabytesReceived;
+                itemToEdit.GigabytesSent = ComputerData.GigabytesSent;
+
+                await SaveChangesAsync();
+            }
+            else
+            {
+                AddComputerDataAsync(ComputerData);
+            }
         }
 
         public async void AddComputerDataAsync(ComputerData computerData)
@@ -30,28 +65,12 @@ namespace SystemClockSetterNTP.Storage.Services
             await SaveChangesAsync();
         }
 
-        public async void EditComputerData(ComputerData computerData)
-        {
-            var itemToEdit = _computerDataContext.ComputerDatas.FirstOrDefault(d => d.Date == computerData.Date);
-
-            if (itemToEdit != null)
-            {
-                _logger.LogDebug($"Computer data changed from | {itemToEdit.Date} | {itemToEdit.Time} | {itemToEdit.PowerOnCount} | {itemToEdit.GigabytesReceived} " +
-                    $"| {itemToEdit.GigabytesSent} | to | {computerData.Date} | {computerData.Time} | {computerData.PowerOnCount} | {computerData.GigabytesReceived} " +
-                    $"| {computerData.GigabytesSent} |");
-
-                itemToEdit.Time = computerData.Time;
-                itemToEdit.PowerOnCount = computerData.PowerOnCount;
-
-                await SaveChangesAsync();
-            }
-        }
-
         public async void RemoveComputerData(ComputerData computerData)
         {
             _computerDataContext.ComputerDatas.Remove(computerData);
 
-            _logger.LogDebug($"Computer entry | {computerData.Date} | {computerData.Time} | {computerData.PowerOnCount} | {computerData.GigabytesReceived} | {computerData.GigabytesSent} | removed");
+            _logger.LogDebug($"Computer entry | {computerData.Date} | {computerData.Time} | {computerData.PowerOnCount} | " +
+                $"{computerData.GigabytesReceived} | {computerData.GigabytesSent} | removed");
 
             await SaveChangesAsync();
         }
