@@ -6,6 +6,9 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using SystemClockSetterNTP.Models;
+using SystemClockSetterNTP.NetworkActivity.Services;
+using SystemClockSetterNTP.Storage.Services;
+using SystemClockSetterNTP.SystemStopwatch.Services;
 
 namespace SystemClockSetterNTP.Services
 {
@@ -16,6 +19,7 @@ namespace SystemClockSetterNTP.Services
         private readonly IWindowService _windowService;
         private readonly IStopwatchService _stopwatchService;
         private readonly IStorageService _storageService;
+        private readonly INicService _nicService;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
         private IKeyboardMouseEvents _keyboardMouseEvents;
@@ -29,7 +33,7 @@ namespace SystemClockSetterNTP.Services
         public ApplicationService(ILogger<ApplicationService> logger, ITimeService timeService,
             IWindowService windowService, DateAndTimeFormat dateAndTimeFormat, WindowConfiguration windowConfiguration,
             ApplicationConfiguration applicationConfiguration, IStopwatchService stopwatchService, IHostApplicationLifetime hostApplicationLifetime,
-            IStorageService storageService)
+            IStorageService storageService, INicService nicService)
         {
             _logger = logger;
             _timeService = timeService;
@@ -40,6 +44,7 @@ namespace SystemClockSetterNTP.Services
             _stopwatchService = stopwatchService;
             _hostApplicationLifetime = hostApplicationLifetime;
             _storageService = storageService;
+            _nicService = nicService;
 
             _hostApplicationLifetime.ApplicationStopping.Register(() =>
             {
@@ -47,6 +52,13 @@ namespace SystemClockSetterNTP.Services
                 {
                     _stopwatchService.StopTimer();
                 }
+
+                if (_applicationConfiguration.CountNetworkActivity)
+                {
+                    _nicService.StopNicsMonitoring();
+                }
+
+                _storageService.EditData();
 
                 _logger.LogDebug("Shutting down application");
                 _logger.LogDebug(new string('-', 100));
@@ -60,7 +72,7 @@ namespace SystemClockSetterNTP.Services
 
         public void ApplicationStartup()
         {
-            if (_applicationConfiguration.CountSystemRunningTime)
+            if (_applicationConfiguration.CountSystemRunningTime || _applicationConfiguration.CountNetworkActivity)
             {
                 Task.Run(() => _storageService.MigrateAsync());
             }
@@ -84,6 +96,16 @@ namespace SystemClockSetterNTP.Services
                         {
                             _stopwatchService.StartTimer();
                             _stopwatchService.RunTimer();
+                        });
+                    }
+
+                    if (_applicationConfiguration.CountNetworkActivity)
+                    {
+                        _nicService.InitializeNICs();
+
+                        Task.Run(() =>
+                        {
+                            _nicService.StartNicsMonitoring();
                         });
                     }
 

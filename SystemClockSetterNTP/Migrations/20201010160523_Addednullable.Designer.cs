@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SystemClockSetterNTP.Storage;
 
 namespace SystemClockSetterNTP.Migrations
 {
     [DbContext(typeof(ComputerDataContext))]
-    partial class ComputerDataContextModelSnapshot : ModelSnapshot
+    [Migration("20201010160523_Addednullable")]
+    partial class Addednullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
