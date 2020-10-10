@@ -95,11 +95,6 @@ namespace SystemClockSetterNTP.SystemStopwatch.Services
 
             ReadStopwatchDataFromDatabase();
 
-            if (_applicationConfiguration.CountNetworkActivity)
-            {
-                Task.Run(() => _nicService.InitializeNICs());
-            }
-
             stopwatch.Start();
         }
 

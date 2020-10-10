@@ -36,13 +36,13 @@ namespace SystemClockSetterNTP.NetworkActivity.Services
 
             if (nicData != null)
             {
-                GigabytesSent = 0;
-                GigabytesReceived = 0;
+                GigabytesReceived = nicData.GigabytesReceived;
+                GigabytesSent = nicData.GigabytesSent;
             }
             else
             {
-                GigabytesReceived = nicData.GigabytesReceived;
-                GigabytesSent = nicData.GigabytesSent;
+                GigabytesSent = 0;
+                GigabytesReceived = 0;
             }
         }
 

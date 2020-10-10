@@ -97,11 +97,12 @@ namespace SystemClockSetterNTP.Services
                         });
                     }
 
-                    if(_applicationConfiguration.CountNetworkActivity)
+                    if (_applicationConfiguration.CountNetworkActivity)
                     {
+                        _nicService.InitializeNICs();
+
                         Task.Run(() =>
                         {
-                            _nicService.InitializeNICs();
                             _nicService.StartNicsMonitoring();
                         });
                     }
