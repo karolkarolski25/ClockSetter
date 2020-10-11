@@ -37,6 +37,7 @@ namespace SystemClockSetterNTP
                         .AddSingleton<IStorageService, StorageService>()
                         .AddSingleton<IWindowService, WindowService>()
                         .AddSingleton<INicService, NicService>()
+                        .AddSingleton<IInternetService, InternetService>()
                         .AddDbContext<IComputerDataContext, ComputerDataContext>();
                 });
     }
