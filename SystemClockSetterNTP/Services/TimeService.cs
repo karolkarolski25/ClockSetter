@@ -7,6 +7,8 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using SystemClockSetterNTP.Models;
+using SystemClockSetterNTP.NetworkActivity.Services;
+using SystemClockSetterNTP.SystemStopwatch.Services;
 
 namespace SystemClockSetterNTP.Services
 {
@@ -19,6 +21,7 @@ namespace SystemClockSetterNTP.Services
         private readonly ApplicationConfiguration _applicationConfiguration;
 
         private readonly IStopwatchService _stopwatchService;
+        private readonly INicService _nicService;
 
         [DllImport("kernel32.dll")]
         static extern bool SetSystemTime(ref SYSTEMTIME time);
@@ -50,7 +53,7 @@ namespace SystemClockSetterNTP.Services
 
         public TimeService(ILogger<TimeService> logger, NtpConfiguration ntpConfiguration,
             WindowConfiguration windowConfiguration, DateAndTimeFormat dateAndTimeFormat,
-            ApplicationConfiguration applicationConfiguration, IStopwatchService stopwatchService)
+            ApplicationConfiguration applicationConfiguration, IStopwatchService stopwatchService, INicService nicService)
         {
             _logger = logger;
             _ntpConfiguration = ntpConfiguration;
@@ -58,6 +61,7 @@ namespace SystemClockSetterNTP.Services
             _dateAndTimeFormat = dateAndTimeFormat;
             _applicationConfiguration = applicationConfiguration;
             _stopwatchService = stopwatchService;
+            _nicService = nicService;
         }
 
         public async Task SetSystemClock()
@@ -93,6 +97,15 @@ namespace SystemClockSetterNTP.Services
                 {
                     _stopwatchService.StartTimer();
                     _stopwatchService.RunTimer();
+                });
+            }
+
+            if (_applicationConfiguration.CountNetworkActivity)
+            {
+                await Task.Run(() =>
+                {
+                    _nicService.InitializeNICs();
+                    _nicService.StartNicsMonitoring();
                 });
             }
         }

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Threading;
 using System.Threading.Tasks;
+using SystemClockSetterNTP.Storage.Models;
 
 namespace SystemClockSetterNTP.Storage
 {

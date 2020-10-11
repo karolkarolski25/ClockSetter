@@ -3,9 +3,10 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using SystemClockSetterNTP.Storage;
+using SystemClockSetterNTP.Storage.Models;
+using SystemClockSetterNTP.Storage.Services;
 
-namespace SystemClockSetterNTP.Services
+namespace SystemClockSetterNTP.SystemStopwatch.Services
 {
     public class StopwatchService : IStopwatchService
     {
@@ -16,7 +17,8 @@ namespace SystemClockSetterNTP.Services
         private TimeSpan timeElapsed;
         private TimeSpan totalElapsedTime;
         private DateTime currentDate;
-        private int powerOnCount;
+        private int? powerOnCount;
+        private ComputerData stopwatchData;
 
         public StopwatchService(ILogger<StopwatchService> logger, IStorageService storageService)
         {
@@ -24,21 +26,28 @@ namespace SystemClockSetterNTP.Services
             _storageService = storageService;
         }
 
-        public void ReadTimeAndDateFromDataBase()
+        public void ReadStopwatchDataFromDatabase()
         {
-            var computerData = _storageService.GetComputerDatasListAsync().Result.FirstOrDefault(e => e.Date == DateTime.Now.ToString("dd.MM.yyyy"));
+            stopwatchData = _storageService.GetComputerDatasListAsync().Result.FirstOrDefault(e => e.Date == DateTime.Now.ToString("dd.MM.yyyy"));
 
-            if (computerData != null)
+            if (stopwatchData != null)
             {
-                timeElapsed = TimeSpan.Parse(computerData.Time);
-                currentDate = Convert.ToDateTime(computerData.Date);
-                powerOnCount = computerData.PowerOnCount;
+                timeElapsed = TimeSpan.Parse(stopwatchData.Time);
+                currentDate = Convert.ToDateTime(stopwatchData.Date);
+                powerOnCount = stopwatchData.PowerOnCount;
             }
             else
             {
                 timeElapsed = new TimeSpan(0, 0, 0);
                 currentDate = DateTime.Now.Date;
                 powerOnCount = 0;
+
+                stopwatchData = new ComputerData()
+                {
+                    Time = timeElapsed.ToString(),
+                    Date = currentDate.ToString("dd.MM.yyyy"),
+                    PowerOnCount = powerOnCount
+                };
             }
         }
 
@@ -46,11 +55,9 @@ namespace SystemClockSetterNTP.Services
         {
             while (true)
             {
-                await Task.Delay(1000);
-
                 if (Math.Abs((DateTime.Now.Date - currentDate).TotalDays) > 0)
                 {
-                    SaveOrEditTime();
+                    UpdateStopwatchData();
 
                     timeElapsed = new TimeSpan(0, 0, 0);
                     currentDate = DateTime.Now.Date;
@@ -60,37 +67,40 @@ namespace SystemClockSetterNTP.Services
                 }
 
                 totalElapsedTime = stopwatch.Elapsed + timeElapsed;
+
+                await Task.Delay(1000);
             }
         }
 
-        public void SaveOrEditTime()
+        public void UpdateStopwatchData()
         {
             _logger.LogDebug($"Elapsed time: {new DateTime(stopwatch.ElapsedTicks):HH:mm:ss}");
 
-            var computerDataToEdit = new ComputerData()
-            {
-                Date = currentDate.ToString("dd.MM.yyyy"),
-                Time = new DateTime(totalElapsedTime.Ticks).ToString("HH:mm:ss"),
-                PowerOnCount = ++powerOnCount
-            };
+            var stopwatchDataToUpdate = new ComputerData();
 
-            var computerData = _storageService.GetComputerDatasListAsync().Result.FirstOrDefault(e => e.Date == computerDataToEdit.Date);
-
-            if (computerData != null)
+            if (stopwatchData != null)
             {
-                _storageService.EditComputerData(computerDataToEdit);
+                stopwatchDataToUpdate.Date = currentDate.ToString("dd.MM.yyyy");
+                stopwatchDataToUpdate.Time = new DateTime(totalElapsedTime.Ticks).ToString("HH:mm:ss");
+                stopwatchDataToUpdate.PowerOnCount = ++powerOnCount;
             }
             else
             {
-                _storageService.AddComputerDataAsync(computerDataToEdit);
+                stopwatchDataToUpdate.Date = DateTime.Now.Date.ToString("dd.MM.yyyy");
+                stopwatchDataToUpdate.Time = "00:00:00";
+                stopwatchDataToUpdate.PowerOnCount = 1;
+                stopwatchDataToUpdate.GigabytesReceived = 0;
+                stopwatchDataToUpdate.GigabytesSent = 0;
             }
+
+            _storageService.UpdateData(stopwatchDataToUpdate);
         }
 
         public void StartTimer()
         {
             _logger.LogDebug("Starting stopwatch");
 
-            ReadTimeAndDateFromDataBase();
+            ReadStopwatchDataFromDatabase();
 
             stopwatch.Start();
         }
@@ -101,7 +111,7 @@ namespace SystemClockSetterNTP.Services
 
             stopwatch.Stop();
 
-            SaveOrEditTime();
+            UpdateStopwatchData();
         }
     }
 }

@@ -3,8 +3,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SystemClockSetterNTP.Models;
+using SystemClockSetterNTP.NetworkActivity.Services;
 using SystemClockSetterNTP.Services;
 using SystemClockSetterNTP.Storage;
+using SystemClockSetterNTP.Storage.Services;
+using SystemClockSetterNTP.SystemStopwatch.Services;
 
 namespace SystemClockSetterNTP
 {
@@ -34,6 +37,7 @@ namespace SystemClockSetterNTP
                         .AddSingleton<IStopwatchService, StopwatchService>()
                         .AddSingleton<IStorageService, StorageService>()
                         .AddSingleton<IWindowService, WindowService>()
+                        .AddSingleton<INicService, NicService>()
                         .AddDbContext<IComputerDataContext, ComputerDataContext>();
                 });
     }
