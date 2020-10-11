@@ -8,6 +8,7 @@ using SystemClockSetterNTP.Services;
 using SystemClockSetterNTP.Storage;
 using SystemClockSetterNTP.Storage.Services;
 using SystemClockSetterNTP.SystemStopwatch.Services;
+using SystemClockSetterNTP.TcpClient.Services;
 
 namespace SystemClockSetterNTP
 {
@@ -38,6 +39,7 @@ namespace SystemClockSetterNTP
                         .AddSingleton<IWindowService, WindowService>()
                         .AddSingleton<INicService, NicService>()
                         .AddSingleton<IInternetService, InternetService>()
+                        .AddSingleton<ITcpClientService, TcpClientService>()
                         .AddDbContext<IComputerDataContext, ComputerDataContext>();
                 });
     }
