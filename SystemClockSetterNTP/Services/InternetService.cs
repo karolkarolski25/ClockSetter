@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using System;
 using System.Net;
+using System.Timers;
 
 namespace SystemClockSetterNTP.Services
 {
@@ -7,19 +9,20 @@ namespace SystemClockSetterNTP.Services
     {
         private readonly ILogger<InternetService> _logger;
 
+        private readonly Timer periodicInternetCheckingTimer = new Timer();
+
+        public event EventHandler InternetConnectionAvailable;
+
         public InternetService(ILogger<InternetService> logger)
         {
-            _logger = logger;
+            _logger = logger;          
         }
 
         public bool IsInternetConnectionAvailable()
         {
             try
             {
-                var s = new WebClient().OpenRead("http://google.com/generate_204");
-
-                _logger.LogDebug("Internet connection available");
-
+                var connectionChecker = new WebClient().OpenRead("http://google.com/generate_204");
                 return true;
             }
             catch
@@ -27,6 +30,25 @@ namespace SystemClockSetterNTP.Services
                 _logger.LogDebug("Internet connection unavailable");
 
                 return false;
+            }
+        }
+
+        public void CheckInternetConnectionPerdiodically()
+        {
+            periodicInternetCheckingTimer.Interval = 20000;
+            periodicInternetCheckingTimer.Elapsed += PeriodicInternetCheckingTimer_Elapsed;
+            periodicInternetCheckingTimer.Enabled = true;
+        }
+
+        private void PeriodicInternetCheckingTimer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            if (IsInternetConnectionAvailable())
+            {
+                _logger.LogDebug("Internet connection has been estabilished, trying to set up system clock again");
+
+                periodicInternetCheckingTimer.Stop();
+
+                InternetConnectionAvailable?.Invoke(this, null);
             }
         }
     }

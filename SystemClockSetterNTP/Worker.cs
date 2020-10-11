@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using SystemClockSetterNTP.Models;
 using SystemClockSetterNTP.Services;
 using Timer = System.Timers.Timer;
@@ -18,8 +19,8 @@ namespace SystemClockSetterNTP
 
         private readonly Timer _checkUserActivityForTimer = new Timer();
 
-        public Worker(ILogger<Worker> logger, IApplicationService applicationService, 
-            ApplicationConfiguration applicationConfiguration,IHostApplicationLifetime hostApplicationLifetime)
+        public Worker(ILogger<Worker> logger, IApplicationService applicationService,
+            ApplicationConfiguration applicationConfiguration, IHostApplicationLifetime hostApplicationLifetime)
         {
             _logger = logger;
             _applicationService = applicationService;
@@ -70,7 +71,7 @@ namespace SystemClockSetterNTP
             }
         }
 
-        private void CheckUserActivityForTimer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        private void CheckUserActivityForTimer_Elapsed(object sender, ElapsedEventArgs e)
         {
             _logger.LogDebug("Time for checking user activity exceeded, no user activity detected");
 
