@@ -21,6 +21,7 @@ namespace SystemClockSetterNTP.Services
         private readonly IStorageService _storageService;
         private readonly INicService _nicService;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
+        private readonly IInternetService _internetService;
 
         private IKeyboardMouseEvents _keyboardMouseEvents;
 
@@ -33,7 +34,7 @@ namespace SystemClockSetterNTP.Services
         public ApplicationService(ILogger<ApplicationService> logger, ITimeService timeService,
             IWindowService windowService, DateAndTimeFormat dateAndTimeFormat, WindowConfiguration windowConfiguration,
             ApplicationConfiguration applicationConfiguration, IStopwatchService stopwatchService, IHostApplicationLifetime hostApplicationLifetime,
-            IStorageService storageService, INicService nicService)
+            IStorageService storageService, INicService nicService, IInternetService internetService)
         {
             _logger = logger;
             _timeService = timeService;
@@ -45,6 +46,9 @@ namespace SystemClockSetterNTP.Services
             _hostApplicationLifetime = hostApplicationLifetime;
             _storageService = storageService;
             _nicService = nicService;
+            _internetService = internetService;
+
+            _internetService.InternetConnectionAvailable += _internetService_InternetConnectionAvailable;
 
             _hostApplicationLifetime.ApplicationStopping.Register(() =>
             {
@@ -63,6 +67,11 @@ namespace SystemClockSetterNTP.Services
                 _logger.LogDebug("Shutting down application");
                 _logger.LogDebug(new string('-', 100));
             });
+        }
+
+        private void _internetService_InternetConnectionAvailable(object sender, EventArgs e)
+        {
+            TrySetSystemClock();
         }
 
         public void ApplicationShutdown()
@@ -86,53 +95,15 @@ namespace SystemClockSetterNTP.Services
 
             try
             {
-                if (_timeService.IsComputerTimeCorrect())
+                if (_internetService.IsInternetConnectionAvailable())
                 {
-                    _logger.LogDebug("Time is correnct, no need to set it up once again");
-
-                    if (_applicationConfiguration.CountSystemRunningTime)
-                    {
-                        Task.Run(() =>
-                        {
-                            _stopwatchService.StartTimer();
-                            _stopwatchService.RunTimer();
-                        });
-                    }
-
-                    if (_applicationConfiguration.CountNetworkActivity)
-                    {
-                        _nicService.InitializeNICs();
-
-                        Task.Run(() =>
-                        {
-                            _nicService.StartNicsMonitoring();
-                        });
-                    }
-
-                    if (!_applicationConfiguration.UserActivityIntegration)
-                    {
-                        ApplicationShutdown();
-                    }
-                    else
-                    {
-                        _logger.LogDebug("Monitoring user activity started");
-                    }
+                    TrySetSystemClock();
                 }
-
                 else
                 {
-                    _logger.LogDebug($"Selected date format: {_dateAndTimeFormat.DateFormat}, time format: {_dateAndTimeFormat.TimeFormat}");
+                    _logger.LogDebug("Starting checking for internet connection");
 
-                    _timeService.SetSystemClock().GetAwaiter().GetResult();
-
-                    if (!_applicationConfiguration.UserActivityIntegration)
-                    {
-                        ApplicationShutdown();
-                    }
-                    else
-                    {
-                        _logger.LogDebug("Monitoring user activity started");
-                    }
+                    _internetService.CheckInternetConnectionPerdiodically();
                 }
             }
 
@@ -146,6 +117,58 @@ namespace SystemClockSetterNTP.Services
                 }
 
                 PrintErrorSettingUpSystemTimeAsync().GetAwaiter().GetResult();
+
+                if (!_applicationConfiguration.UserActivityIntegration)
+                {
+                    ApplicationShutdown();
+                }
+                else
+                {
+                    _logger.LogDebug("Monitoring user activity started");
+                }
+            }
+        }
+
+        public void TrySetSystemClock()
+        {
+            if (_timeService.IsComputerTimeCorrect())
+            {
+                _logger.LogDebug("Time is correnct, no need to set it up once again");
+
+                if (_applicationConfiguration.CountSystemRunningTime)
+                {
+                    Task.Run(() =>
+                    {
+                        _stopwatchService.StartTimer();
+                        _stopwatchService.RunTimer();
+                    });
+                }
+
+                if (_applicationConfiguration.CountNetworkActivity)
+                {
+                    _nicService.InitializeNICs();
+
+                    Task.Run(() =>
+                    {
+                        _nicService.StartNicsMonitoring();
+                    });
+                }
+
+                if (!_applicationConfiguration.UserActivityIntegration)
+                {
+                    ApplicationShutdown();
+                }
+                else
+                {
+                    _logger.LogDebug("Monitoring user activity started");
+                }
+            }
+
+            else
+            {
+                _logger.LogDebug($"Selected date format: {_dateAndTimeFormat.DateFormat}, time format: {_dateAndTimeFormat.TimeFormat}");
+
+                _timeService.SetSystemClock().GetAwaiter().GetResult();
 
                 if (!_applicationConfiguration.UserActivityIntegration)
                 {
