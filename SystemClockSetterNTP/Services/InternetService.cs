@@ -48,6 +48,8 @@ namespace SystemClockSetterNTP.Services
 
                 periodicInternetCheckingTimer.Stop();
 
+                periodicInternetCheckingTimer.Dispose();
+
                 InternetConnectionAvailable?.Invoke(this, null);
             }
         }
