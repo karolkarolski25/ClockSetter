@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SystemClockSetterNTP.DatabaseTcpClient.Services;
 using SystemClockSetterNTP.Models;
 using SystemClockSetterNTP.NetworkActivity.Services;
 using SystemClockSetterNTP.Storage.Services;
@@ -22,6 +23,7 @@ namespace SystemClockSetterNTP.Services
         private readonly INicService _nicService;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly IInternetService _internetService;
+        private readonly ITcpClientService _tcpClientService;
 
         private IKeyboardMouseEvents _keyboardMouseEvents;
 
@@ -34,7 +36,7 @@ namespace SystemClockSetterNTP.Services
         public ApplicationService(ILogger<ApplicationService> logger, ITimeService timeService,
             IWindowService windowService, DateAndTimeFormat dateAndTimeFormat, WindowConfiguration windowConfiguration,
             ApplicationConfiguration applicationConfiguration, IStopwatchService stopwatchService, IHostApplicationLifetime hostApplicationLifetime,
-            IStorageService storageService, INicService nicService, IInternetService internetService)
+            IStorageService storageService, INicService nicService, IInternetService internetService, ITcpClientService tcpClientService)
         {
             _logger = logger;
             _timeService = timeService;
@@ -47,6 +49,7 @@ namespace SystemClockSetterNTP.Services
             _storageService = storageService;
             _nicService = nicService;
             _internetService = internetService;
+            _tcpClientService = tcpClientService;
 
             _internetService.InternetConnectionAvailable += _internetService_InternetConnectionAvailable;
 
@@ -86,47 +89,53 @@ namespace SystemClockSetterNTP.Services
                 Task.Run(() => _storageService.MigrateAsync());
             }
 
-            if (_windowConfiguration.ChangeWindowDimensions)
+            if (_tcpClientService.TryConnectWithServer())
             {
-                _windowService.WindowServiceStartup();
+                _tcpClientService.SendDataToServer(_storageService.GetComputerDatasListAsync().Result);
+                _tcpClientService.CloseConnection();
             }
 
-            Wait().GetAwaiter().GetResult();
+            //if (_windowConfiguration.ChangeWindowDimensions)
+            //{
+            //    _windowService.WindowServiceStartup();
+            //}
 
-            try
-            {
-                if (_internetService.IsInternetConnectionAvailable())
-                {
-                    TrySetSystemClock();
-                }
-                else
-                {
-                    _logger.LogDebug("Starting checking for internet connection");
+            //Wait().GetAwaiter().GetResult();
 
-                    _internetService.CheckInternetConnectionPerdiodically();
-                }
-            }
+            //try
+            //{
+            //    if (_internetService.IsInternetConnectionAvailable())
+            //    {
+            //        TrySetSystemClock();
+            //    }
+            //    else
+            //    {
+            //        _logger.LogDebug("Starting checking for internet connection");
 
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Exception occured during time operation, time hasn't been set");
+            //        _internetService.CheckInternetConnectionPerdiodically();
+            //    }
+            //}
 
-                if (_windowConfiguration.Beep)
-                {
-                    Console.Beep(_windowConfiguration.FailureBeepFrequency, _windowConfiguration.FailureBeepDuration);
-                }
+            //catch (Exception ex)
+            //{
+            //    _logger.LogError(ex, "Exception occured during time operation, time hasn't been set");
 
-                PrintErrorSettingUpSystemTimeAsync().GetAwaiter().GetResult();
+            //    if (_windowConfiguration.Beep)
+            //    {
+            //        Console.Beep(_windowConfiguration.FailureBeepFrequency, _windowConfiguration.FailureBeepDuration);
+            //    }
 
-                if (!_applicationConfiguration.UserActivityIntegration)
-                {
-                    ApplicationShutdown();
-                }
-                else
-                {
-                    _logger.LogDebug("Monitoring user activity started");
-                }
-            }
+            //    PrintErrorSettingUpSystemTimeAsync().GetAwaiter().GetResult();
+
+            //    if (!_applicationConfiguration.UserActivityIntegration)
+            //    {
+            //        ApplicationShutdown();
+            //    }
+            //    else
+            //    {
+            //        _logger.LogDebug("Monitoring user activity started");
+            //    }
+            //}
         }
 
         public void TrySetSystemClock()

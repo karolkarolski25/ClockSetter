@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using SystemClockSetterNTP.Storage.Models;
 
-namespace SystemClockSetterNTP.TcpClient.Services
+namespace SystemClockSetterNTP.DatabaseTcpClient.Services
 {
     public interface ITcpClientService
     {
-        void InitTcpClient();
+        void CloseConnection();
         void SendDataToServer(List<ComputerData> dataToSend);
+        bool TryConnectWithServer();
     }
 }

@@ -48,14 +48,14 @@ namespace SystemClockSetterNTP
             {
                 _applicationService.ApplicationStartup();
 
-                if (_applicationConfiguration.UserActivityIntegration)
-                {
-                    _applicationService.UserActivityDetected += OnUserActivityDetected;
+                //if (_applicationConfiguration.UserActivityIntegration)
+                //{
+                //    _applicationService.UserActivityDetected += OnUserActivityDetected;
 
-                    StartTimers();
+                //    StartTimers();
 
-                    await _applicationService.HookUserActivity();
-                }
+                //    await _applicationService.HookUserActivity();
+                //}
             }
 
             catch (Exception e)
