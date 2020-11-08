@@ -4,5 +4,6 @@
     {
         public string ServerIp { get; set; }
         public int ServerPort { get; set; }
+        public string ComputerName { get; set; }
     }
 }

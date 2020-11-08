@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using SystemClockSetterNTP.Storage.Models;
 
 namespace SystemClockSetterNTP.DatabaseTcpClient.Services
@@ -6,7 +7,7 @@ namespace SystemClockSetterNTP.DatabaseTcpClient.Services
     public interface ITcpClientService
     {
         void CloseConnection();
-        void SendDataToServer(List<ComputerData> dataToSend);
+        Task SendDataToServerAsync(List<ComputerData> dataToSend);
         bool TryConnectWithServer();
     }
 }

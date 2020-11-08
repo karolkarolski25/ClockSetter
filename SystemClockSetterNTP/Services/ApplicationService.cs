@@ -91,7 +91,7 @@ namespace SystemClockSetterNTP.Services
 
             if (_tcpClientService.TryConnectWithServer())
             {
-                _tcpClientService.SendDataToServer(_storageService.GetComputerDatasListAsync().Result);
+                _tcpClientService.SendDataToServerAsync(_storageService.GetComputerDatasListAsync().Result).GetAwaiter().GetResult();
                 _tcpClientService.CloseConnection();
             }
 

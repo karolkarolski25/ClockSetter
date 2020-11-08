@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using SystemClockSetterNTP.Storage;
 using SystemClockSetterNTP.Storage.Models;
 
 namespace SystemClockSetterNTP.Storage.Services
