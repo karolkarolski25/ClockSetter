@@ -122,6 +122,6 @@ namespace SystemClockSetterNTP.Storage.Services
             {
                 _semaphoreSlim.Release();
             }
-        }
+        }    
     }
 }

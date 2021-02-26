@@ -1,5 +1,8 @@
 import socket
 
+from DatabaseService import DatabaseService
+from ChartsService import ChartService
+
 
 def print_received_data(database_content, computer_name):
     print("\nComputer name: " + computer_name)
@@ -54,5 +57,7 @@ class TcpServer:
 
             print_received_data(database_content, computer_name)
 
+            ChartService(database_content, computer_name).generate_chart()
+
         except Exception as ex:
-            print(f"ERROR in Server: {ex}")
+            print("ERROR in Server: " + ex)

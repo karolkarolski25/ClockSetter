@@ -354,3 +354,5 @@ MigrationBackup/
 *.xml
 *.iml
 *.idea
+*.jpg
+*.xml

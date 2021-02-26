@@ -12,14 +12,14 @@ class ClientEmulator:
         self.server_ip = server_ip
         self.server_port = server_port
 
-    def get_random_date(self):
-        return f"{random.randint(1, 28)}.{random.randint(1, 12)}.{random.randint(2000, 2031)}"
+    def get_random_date(self, i):
+        return str(i) + "/01/2020"
 
     def get_random_time(self):
-        return f"{random.randint(10, 99)}:{random.randint(10, 59)}:{random.randint(10, 59)}"
+        return str(random.randint(0, 600))
 
     def get_random_power_on_count(self):
-        return random.randint(1, 99)
+        return str(random.randint(1, 99))
 
     def get_random_net_data(self):
         downloaded_data = round(random.random(), 4)
@@ -34,12 +34,12 @@ class ClientEmulator:
 
             message = []
 
-            for i in range(0, 25):
+            for i in range(0, 31):
                 net_data = self.get_random_net_data()
 
                 message.append(
-                    f"{self.get_random_date()}|{self.get_random_time()}|{self.get_random_power_on_count()}|" \
-                    f"{net_data[0]}|{net_data[1]}")
+                    self.get_random_date(i + 1) + "|" + self.get_random_time()+ "|" + self.get_random_power_on_count()
+                    + "|" + str(net_data[0]) + "|" + str(net_data[1]))
 
                 sock.send(message[i].encode('utf-8'))
 
@@ -48,4 +48,4 @@ class ClientEmulator:
             sock.send("KarolLaptop".encode('utf-8'))
 
         except Exception as ex:
-            print(f"ERROR in Client emulation: {ex}")
+            print("ERROR in Client emulation: " + ex)
